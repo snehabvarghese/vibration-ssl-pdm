@@ -11,7 +11,7 @@ missing a common one.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Sequence
 
 import matplotlib
 

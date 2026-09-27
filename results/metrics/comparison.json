@@ -1,0 +1,167 @@
+{
+  "rows": [
+    {
+      "method": "SSL + mlp",
+      "label_fraction": 0.01,
+      "n_labelled": 32,
+      "accuracy_mean": 0.6680129240710824,
+      "accuracy_std": 0.05053901219881558,
+      "precision_macro_mean": 0.6223361395536612,
+      "recall_macro_mean": 0.6578258547008546,
+      "f1_macro_mean": 0.5900921631216842,
+      "f1_macro_std": 0.06314061074645289
+    },
+    {
+      "method": "SSL + svm_rbf",
+      "label_fraction": 0.01,
+      "n_labelled": 32,
+      "accuracy_mean": 0.6685514270328486,
+      "accuracy_std": 0.0430330921357179,
+      "precision_macro_mean": 0.6141092280615069,
+      "recall_macro_mean": 0.6501335470085471,
+      "f1_macro_mean": 0.5924037198754977,
+      "f1_macro_std": 0.04525678530723998
+    },
+    {
+      "method": "Supervised CNN (baseline)",
+      "label_fraction": 0.01,
+      "n_labelled": 32,
+      "accuracy_mean": 0.8231017770597738,
+      "accuracy_std": 0.049980792024784074,
+      "precision_macro_mean": 0.8472423913431482,
+      "recall_macro_mean": 0.8289062500000001,
+      "f1_macro_mean": 0.7875257371390599,
+      "f1_macro_std": 0.06538707634703841
+    },
+    {
+      "method": "SSL + mlp",
+      "label_fraction": 0.05,
+      "n_labelled": 128,
+      "accuracy_mean": 0.6841680129240711,
+      "accuracy_std": 0.022932261012242966,
+      "precision_macro_mean": 0.676777308677134,
+      "recall_macro_mean": 0.6860443376068375,
+      "f1_macro_mean": 0.6300204940575708,
+      "f1_macro_std": 0.03363094915092583
+    },
+    {
+      "method": "SSL + svm_rbf",
+      "label_fraction": 0.05,
+      "n_labelled": 128,
+      "accuracy_mean": 0.6763597199784598,
+      "accuracy_std": 0.03957355642102023,
+      "precision_macro_mean": 0.6692547281283016,
+      "recall_macro_mean": 0.6648036858974359,
+      "f1_macro_mean": 0.6184953910495433,
+      "f1_macro_std": 0.061206939704560474
+    },
+    {
+      "method": "Supervised CNN (baseline)",
+      "label_fraction": 0.05,
+      "n_labelled": 128,
+      "accuracy_mean": 0.875605815831987,
+      "accuracy_std": 0.0034270118635858307,
+      "precision_macro_mean": 0.8620057723134669,
+      "recall_macro_mean": 0.8796875000000001,
+      "f1_macro_mean": 0.854858810767197,
+      "f1_macro_std": 0.007434767076816967
+    },
+    {
+      "method": "SSL + mlp",
+      "label_fraction": 0.1,
+      "n_labelled": 256,
+      "accuracy_mean": 0.700861604738826,
+      "accuracy_std": 0.012554166103257687,
+      "precision_macro_mean": 0.6973716703711658,
+      "recall_macro_mean": 0.7106770833333332,
+      "f1_macro_mean": 0.6496995994867295,
+      "f1_macro_std": 0.020109833264508367
+    },
+    {
+      "method": "SSL + svm_rbf",
+      "label_fraction": 0.1,
+      "n_labelled": 256,
+      "accuracy_mean": 0.7132471728594507,
+      "accuracy_std": 0.02204247273871401,
+      "precision_macro_mean": 0.726976240903697,
+      "recall_macro_mean": 0.7223824786324786,
+      "f1_macro_mean": 0.6739555723702937,
+      "f1_macro_std": 0.03198102405156851
+    },
+    {
+      "method": "Supervised CNN (baseline)",
+      "label_fraction": 0.1,
+      "n_labelled": 256,
+      "accuracy_mean": 0.8696822832525579,
+      "accuracy_std": 0.000761558191907945,
+      "precision_macro_mean": 0.8533862266338273,
+      "recall_macro_mean": 0.8739583333333334,
+      "f1_macro_mean": 0.8485294322054838,
+      "f1_macro_std": 0.004525634800487048
+    },
+    {
+      "method": "SSL + mlp",
+      "label_fraction": 0.2,
+      "n_labelled": 512,
+      "accuracy_mean": 0.7051696284329564,
+      "accuracy_std": 0.014937998391685723,
+      "precision_macro_mean": 0.6578964185231144,
+      "recall_macro_mean": 0.71484375,
+      "f1_macro_mean": 0.6506849495323529,
+      "f1_macro_std": 0.014942157924543816
+    },
+    {
+      "method": "SSL + svm_rbf",
+      "label_fraction": 0.2,
+      "n_labelled": 512,
+      "accuracy_mean": 0.7011308562197093,
+      "accuracy_std": 0.029941442637884716,
+      "precision_macro_mean": 0.7270158574534603,
+      "recall_macro_mean": 0.6986177884615384,
+      "f1_macro_mean": 0.656370091712803,
+      "f1_macro_std": 0.04062820874212735
+    },
+    {
+      "method": "Supervised CNN (baseline)",
+      "label_fraction": 0.2,
+      "n_labelled": 512,
+      "accuracy_mean": 0.8815293484114163,
+      "accuracy_std": 0.008140127333242307,
+      "precision_macro_mean": 0.8798829229742157,
+      "recall_macro_mean": 0.8854166666666666,
+      "f1_macro_mean": 0.8608699542984356,
+      "f1_macro_std": 0.017585946565791575
+    }
+  ],
+  "ssl_vs_baseline": {
+    "0.01": {
+      "best_ssl_method": "SSL + svm_rbf",
+      "ssl_f1_macro": 0.5924037198754977,
+      "baseline_f1_macro": 0.7875257371390599,
+      "absolute_gain": -0.19512201726356226,
+      "relative_gain_pct": -24.776589267089307
+    },
+    "0.05": {
+      "best_ssl_method": "SSL + mlp",
+      "ssl_f1_macro": 0.6300204940575708,
+      "baseline_f1_macro": 0.854858810767197,
+      "absolute_gain": -0.22483831670962628,
+      "relative_gain_pct": -26.301222363005664
+    },
+    "0.1": {
+      "best_ssl_method": "SSL + svm_rbf",
+      "ssl_f1_macro": 0.6739555723702937,
+      "baseline_f1_macro": 0.8485294322054838,
+      "absolute_gain": -0.17457385983519014,
+      "relative_gain_pct": -20.573695290856396
+    },
+    "0.2": {
+      "best_ssl_method": "SSL + svm_rbf",
+      "ssl_f1_macro": 0.656370091712803,
+      "baseline_f1_macro": 0.8608699542984356,
+      "absolute_gain": -0.20449986258563257,
+      "relative_gain_pct": -23.755023806387733
+    }
+  },
+  "note": "all values measured in this repository; the reference paper's F1 of 0.93 refers to different data and is not a target"
+}

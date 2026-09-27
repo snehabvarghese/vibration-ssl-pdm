@@ -33,7 +33,6 @@ RUN
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import joblib
@@ -123,7 +122,7 @@ def analyse_signal(signal: np.ndarray, sampling_rate: int) -> Optional[Dict[str,
         "embeddings": emb,
         "predicted_class": classes[pred_idx],
         "confidence": float(proba[pred_idx]),
-        "class_probabilities": dict(zip(classes, proba.tolist())),
+        "class_probabilities": dict(zip(classes, proba.tolist(), strict=True)),
     }
 
     if monitor is not None:

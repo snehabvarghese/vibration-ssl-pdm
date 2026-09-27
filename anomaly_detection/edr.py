@@ -69,8 +69,8 @@ robustness check, not as the default.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 import numpy as np
 from sklearn.decomposition import PCA

@@ -173,7 +173,7 @@ def plot_example_waveforms(signals: List[LoadedSignal], out_path: Path, seconds:
     fig, axes = plt.subplots(nrows, ncols, figsize=(12, 1.9 * nrows), sharex=True)
     axes = np.atleast_1d(axes).ravel()
 
-    for ax, label in zip(axes, labels):
+    for ax, label in zip(axes, labels, strict=False):
         s = by_label[label]
         n_show = int(seconds * s.sampling_rate)
         t = np.arange(n_show) / s.sampling_rate

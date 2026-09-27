@@ -37,7 +37,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
@@ -66,6 +66,18 @@ def load_encoder(
     encoder.load_state_dict(ckpt["encoder_state_dict"])
     encoder.eval()
     return encoder
+
+
+def load_encoder_state(
+    checkpoint: Path = CHECKPOINTS_DIR / CFG.ssl.checkpoint_name,
+) -> Dict[str, torch.Tensor]:
+    """Just the pretrained encoder weights, for initialising a fine-tuned model."""
+    if not Path(checkpoint).exists():
+        raise FileNotFoundError(
+            f"{checkpoint} not found -- run `python -m training.train_ssl` first"
+        )
+    ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
+    return ckpt["encoder_state_dict"]
 
 
 @torch.no_grad()

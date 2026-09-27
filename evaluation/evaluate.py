@@ -2,9 +2,11 @@
 STEP 11: comparison of the proposed pipeline against the supervised baseline.
 
 Reads the metric files written by:
-    training/train_classifier.py   (SSL embeddings + SVM / MLP)
-    training/train_baseline.py     (supervised CNN from scratch)
-and produces a single comparison table + figure.
+    training/train_classifier.py              (SSL embeddings + SVM / MLP)
+    training/train_baseline.py                (supervised CNN from scratch)
+    training/train_baseline.py --init ssl     (same CNN, SSL initialisation)
+and produces a single comparison table + figure. The third arm is optional:
+it is included whenever its metric file exists.
 
 WHAT THE COMPARISON MEANS
 -------------------------
@@ -36,12 +38,14 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 
 from config import FIGURES_DIR, METRICS_DIR
 
 SSL_FILE = METRICS_DIR / "downstream_classification.json"
 BASE_FILE = METRICS_DIR / "baseline_classification.json"
+FT_FILE = METRICS_DIR / "finetune_classification.json"
+BASELINE_METHOD = "Supervised CNN (baseline)"
+FINETUNE_METHOD = "SSL pretrained + fine-tuned CNN"
 
 
 def _require(path: Path, how: str) -> dict:
@@ -50,33 +54,30 @@ def _require(path: Path, how: str) -> dict:
     return json.loads(path.read_text())
 
 
-def build_rows(ssl: dict, base: dict) -> List[Dict[str, object]]:
+def _row(method: str, frac: str, res: dict) -> Dict[str, object]:
+    return {
+        "method": method,
+        "label_fraction": float(frac),
+        "n_labelled": res["n_labelled"],
+        "accuracy_mean": res["accuracy_mean"],
+        "accuracy_std": res["accuracy_std"],
+        "precision_macro_mean": res["precision_macro_mean"],
+        "recall_macro_mean": res["recall_macro_mean"],
+        "f1_macro_mean": res["f1_macro_mean"],
+        "f1_macro_std": res["f1_macro_std"],
+    }
+
+
+def build_rows(ssl: dict, base: dict, finetune: Optional[dict] = None) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     for clf, by_frac in ssl["results"].items():
         for frac, res in by_frac.items():
-            rows.append({
-                "method": f"SSL + {clf}",
-                "label_fraction": float(frac),
-                "n_labelled": res["n_labelled"],
-                "accuracy_mean": res["accuracy_mean"],
-                "accuracy_std": res["accuracy_std"],
-                "precision_macro_mean": res["precision_macro_mean"],
-                "recall_macro_mean": res["recall_macro_mean"],
-                "f1_macro_mean": res["f1_macro_mean"],
-                "f1_macro_std": res["f1_macro_std"],
-            })
+            rows.append(_row(f"SSL frozen + {clf}", frac, res))
     for frac, res in base["results"].items():
-        rows.append({
-            "method": "Supervised CNN (baseline)",
-            "label_fraction": float(frac),
-            "n_labelled": res["n_labelled"],
-            "accuracy_mean": res["accuracy_mean"],
-            "accuracy_std": res["accuracy_std"],
-            "precision_macro_mean": res["precision_macro_mean"],
-            "recall_macro_mean": res["recall_macro_mean"],
-            "f1_macro_mean": res["f1_macro_mean"],
-            "f1_macro_std": res["f1_macro_std"],
-        })
+        rows.append(_row(BASELINE_METHOD, frac, res))
+    if finetune is not None:
+        for frac, res in finetune["results"].items():
+            rows.append(_row(FINETUNE_METHOD, frac, res))
     return sorted(rows, key=lambda r: (r["label_fraction"], r["method"]))
 
 
@@ -88,7 +89,7 @@ def plot_comparison(rows: List[Dict[str, object]], out_path: Path) -> None:
         x = [float(r["label_fraction"]) * 100 for r in pts]
         y = [float(r["f1_macro_mean"]) for r in pts]
         e = [float(r["f1_macro_std"]) for r in pts]
-        style = dict(marker="s", ls="--") if "baseline" in m else dict(marker="o", ls="-")
+        style = dict(marker="s", ls="--") if m == BASELINE_METHOD else dict(marker="o", ls="-")
         ax.errorbar(x, y, yerr=e, capsize=3, label=m, **style)
     ax.set_xscale("log")
     ax.set_xlabel("labelled fraction of the training split (%)")
@@ -106,13 +107,14 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     ssl = _require(SSL_FILE, "python -m training.train_classifier")
     base = _require(BASE_FILE, "python -m training.train_baseline")
-    rows = build_rows(ssl, base)
+    finetune = json.loads(FT_FILE.read_text()) if FT_FILE.exists() else None
+    rows = build_rows(ssl, base, finetune)
 
-    header = f"{'method':28s} {'labels%':>8s} {'n':>5s} {'acc':>14s} {'macroF1':>14s}"
+    header = f"{'method':32s} {'labels%':>8s} {'n':>5s} {'acc':>14s} {'macroF1':>14s}"
     print(header)
     print("-" * len(header))
     for r in rows:
-        print(f"{r['method']:28s} {float(r['label_fraction'])*100:7.1f}% {r['n_labelled']:5d} "
+        print(f"{r['method']:32s} {float(r['label_fraction'])*100:7.1f}% {r['n_labelled']:5d} "
               f"{r['accuracy_mean']:.3f}+-{r['accuracy_std']:.3f}  "
               f"{r['f1_macro_mean']:.3f}+-{r['f1_macro_std']:.3f}")
 
@@ -120,8 +122,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     deltas: Dict[str, Dict[str, float]] = {}
     for frac in sorted({float(r["label_fraction"]) for r in rows}):
         at = [r for r in rows if float(r["label_fraction"]) == frac]
-        b = next(r for r in at if "baseline" in str(r["method"]))
-        best = max((r for r in at if "baseline" not in str(r["method"])),
+        b = next(r for r in at if r["method"] == BASELINE_METHOD)
+        best = max((r for r in at if r["method"] != BASELINE_METHOD),
                    key=lambda r: float(r["f1_macro_mean"]))
         deltas[f"{frac}"] = {
             "best_ssl_method": str(best["method"]),

@@ -48,6 +48,7 @@ from evaluation.metrics import (
 )
 from models.baseline_cnn import BaselineCNN
 from training.datasets import SupervisedSegmentDataset, load_processed
+from training.extract_embeddings import load_encoder_state
 from training.splits import make_split
 
 
@@ -79,6 +80,7 @@ def train_once(
     lr: float,
     device: str,
     seed: int,
+    init: str = "scratch",
 ) -> Tuple[BaselineCNN, Dict[str, List[float]]]:
     set_seed(seed)
     # Hold out part of the labelled budget for checkpoint selection.
@@ -86,7 +88,11 @@ def train_once(
     x_train, y_train = x_labelled[tr_idx], y_labelled[tr_idx]
     x_val, y_val = x_labelled[va_idx], y_labelled[va_idx]
 
-    model = BaselineCNN(n_classes).to(device)
+    model = BaselineCNN(n_classes)
+    if init == "ssl":
+        # Same architecture, same labels -- only the starting weights differ.
+        model.encoder.load_state_dict(load_encoder_state())
+    model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,
                                  weight_decay=CFG.baseline.weight_decay)
     criterion = nn.CrossEntropyLoss()
@@ -154,7 +160,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--batch-size", type=int, default=CFG.baseline.batch_size)
     parser.add_argument("--lr", type=float, default=CFG.baseline.lr)
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--init", type=str, default="scratch", choices=["scratch", "ssl"],
+                        help="'scratch' = supervised baseline; "
+                             "'ssl' = fine-tune the self-supervised encoder")
     args = parser.parse_args(argv)
+    tag = "baseline" if args.init == "scratch" else "ssl-finetune"
+    out_name = ("baseline_classification.json" if args.init == "scratch"
+                else "finetune_classification.json")
+    ckpt_name = (CFG.baseline.checkpoint_name if args.init == "scratch"
+                 else "ssl_finetuned_cnn.pt")
+    fig_name = ("11_confusion_baseline.png" if args.init == "scratch"
+                else "11b_confusion_ssl_finetune.png")
 
     set_seed(CFG.seed)
     device = args.device or get_device()
@@ -177,7 +193,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             n_used = len(sub)
             model, hist = train_once(
                 x_train[sub], y_train[sub], len(classes),
-                args.epochs, args.batch_size, args.lr, device, seed,
+                args.epochs, args.batch_size, args.lr, device, seed, args.init,
             )
             pred = predict(model, x_test, device)
             runs.append(classification_metrics(y_test, pred))
@@ -186,38 +202,42 @@ def main(argv: Optional[List[str]] = None) -> int:
                 torch.save(
                     {"state_dict": model.state_dict(), "classes": classes,
                      "label_fraction": frac, "model_config": CFG.model.__dict__},
-                    CHECKPOINTS_DIR / CFG.baseline.checkpoint_name,
+                    CHECKPOINTS_DIR / ckpt_name,
                 )
         res = summarize_repeats(runs)
         res["n_labelled"] = int(n_used)
         res["per_run"] = runs
         res["last_history"] = last_hist
         results[f"{frac}"] = res
-        print(f"baseline {frac*100:5.1f}%  n={n_used:4d}  "
+        print(f"{tag:13s} {frac*100:5.1f}%  n={n_used:4d}  "
               f"acc {res['accuracy_mean']:.3f}+-{res['accuracy_std']:.3f}  "
               f"F1 {res['f1_macro_mean']:.3f}+-{res['f1_macro_std']:.3f}")
         if frac == best_frac:
             best_pred = last_pred
 
     if best_pred is not None:
+        title = ("Supervised CNN baseline" if args.init == "scratch"
+                 else "SSL-pretrained CNN, fine-tuned")
         plot_confusion(y_test, best_pred, classes,
-                       f"Supervised CNN baseline ({best_frac*100:g}% labels)",
-                       FIGURES_DIR / "11_confusion_baseline.png")
+                       f"{title} ({best_frac*100:g}% labels)",
+                       FIGURES_DIR / fig_name)
 
     payload = {
         "setup": {
-            "model": "supervised 1-D CNN (same backbone as the SSL encoder)",
+            "model": ("supervised 1-D CNN trained from scratch" if args.init == "scratch"
+                      else "1-D CNN initialised from the self-supervised encoder"),
+            "init": args.init,
             "epochs": args.epochs,
             "split_strategy": CFG.split.strategy,
-            "note": "trained from scratch on the labelled subset only; the epoch "
-                    "is selected on a 20% holdout carved out of that same subset, "
-                    "so the label budget matches the self-supervised arm",
+            "note": "trained on the labelled subset only; the epoch is selected on "
+                    "a 20% holdout carved out of that same subset, so every arm "
+                    "spends exactly the same label budget",
             "classes": classes,
         },
         "results": results,
     }
-    (METRICS_DIR / "baseline_classification.json").write_text(json.dumps(payload, indent=2))
-    print(f"metrics -> {METRICS_DIR / 'baseline_classification.json'}")
+    (METRICS_DIR / out_name).write_text(json.dumps(payload, indent=2))
+    print(f"metrics -> {METRICS_DIR / out_name}")
     return 0
 
 

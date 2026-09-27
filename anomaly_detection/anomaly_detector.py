@@ -64,10 +64,9 @@ from typing import Dict, List, Optional
 import matplotlib
 
 matplotlib.use("Agg")
+import joblib
 import matplotlib.pyplot as plt
 import numpy as np
-
-import joblib
 
 from anomaly_detection.edr import EDRDetector, _regularized_cov
 from config import CFG, CHECKPOINTS_DIR, FIGURES_DIR, METRICS_DIR, set_seed

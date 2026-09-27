@@ -52,7 +52,7 @@ def main() -> int:
         ("4. Z-scored window (model input)", normed[0], fs),
     ]
     fig, axes = plt.subplots(len(stages), 1, figsize=(11, 8))
-    for ax, (title, data, rate) in zip(axes, stages):
+    for ax, (title, data, rate) in zip(axes, stages, strict=True):
         ax.plot(np.arange(len(data)) / rate, data, linewidth=0.7, color="#4C72B0")
         ax.set_title(title, fontsize=9, loc="left")
         ax.set_ylabel("a", fontsize=8)
@@ -74,6 +74,7 @@ def main() -> int:
             ("Augmented view A", view_a, "#55A868"),
             ("Augmented view B", view_b, "#C44E52"),
         ],
+        strict=True,
     ):
         ax.plot(np.arange(len(data)) / fs, data, linewidth=0.7, color=color)
         ax.set_title(title, fontsize=9, loc="left")

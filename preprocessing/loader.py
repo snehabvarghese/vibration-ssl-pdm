@@ -167,7 +167,8 @@ def load_signal(
         bad_frac = 1.0 - finite.mean()
         if bad_frac > 0.01:
             raise SignalLoadError(f"{path.name}: {bad_frac:.1%} non-finite samples")
-        warnings.warn(f"{path.name}: interpolating {int((~finite).sum())} non-finite samples")
+        warnings.warn(f"{path.name}: interpolating {int((~finite).sum())} non-finite samples",
+                      stacklevel=2)
         idx = np.arange(raw.size)
         raw = np.interp(idx, idx[finite], raw[finite])
 
@@ -216,7 +217,7 @@ def load_dataset(
         except (FileNotFoundError, SignalLoadError) as exc:
             if not skip_errors:
                 raise
-            warnings.warn(f"skipping record {rec.file_id}: {exc}")
+            warnings.warn(f"skipping record {rec.file_id}: {exc}", stacklevel=2)
     return signals
 
 

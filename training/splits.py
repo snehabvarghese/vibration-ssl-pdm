@@ -98,7 +98,7 @@ def split_by_record(
     train_records: List[str] = []
     val_records: List[str] = []
     test_records: List[str] = []
-    for cls, recs in sorted(records_by_class.items()):
+    for _cls, recs in sorted(records_by_class.items()):
         recs = list(recs)
         rng.shuffle(recs)
         n = len(recs)
