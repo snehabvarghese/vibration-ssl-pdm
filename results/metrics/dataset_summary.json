@@ -1,0 +1,1417 @@
+{
+  "dataset": "cwru",
+  "label_mode": "fault_type_size",
+  "channel": "DE",
+  "target_sampling_rate_hz": 12000,
+  "n_records": 64,
+  "n_classes": 16,
+  "classes": [
+    "B007",
+    "B014",
+    "B021",
+    "B028",
+    "IR007",
+    "IR014",
+    "IR021",
+    "IR028",
+    "Normal",
+    "OR007@12",
+    "OR007@3",
+    "OR007@6",
+    "OR014@6",
+    "OR021@12",
+    "OR021@3",
+    "OR021@6"
+  ],
+  "class_distribution_records": {
+    "B007": 4,
+    "B014": 4,
+    "B021": 4,
+    "B028": 4,
+    "IR007": 4,
+    "IR014": 4,
+    "IR021": 4,
+    "IR028": 4,
+    "Normal": 4,
+    "OR007@12": 4,
+    "OR007@3": 4,
+    "OR007@6": 4,
+    "OR014@6": 4,
+    "OR021@12": 4,
+    "OR021@3": 4,
+    "OR021@6": 4
+  },
+  "class_distribution_seconds": {
+    "B007": 40.59,
+    "B014": 40.68,
+    "B021": 40.66,
+    "B028": 40.34,
+    "IR007": 40.69,
+    "IR014": 40.6,
+    "IR021": 40.63,
+    "IR028": 40.42,
+    "Normal": 35.36,
+    "OR007@12": 40.72,
+    "OR007@3": 40.66,
+    "OR007@6": 40.7,
+    "OR014@6": 40.65,
+    "OR021@12": 40.72,
+    "OR021@3": 40.68,
+    "OR021@6": 40.72
+  },
+  "signal_length_samples": {
+    "min": 60985,
+    "max": 122917,
+    "mean": 120907.90625
+  },
+  "total_duration_s": 644.84,
+  "per_class_mean_statistics": {
+    "Normal": {
+      "mean": 0.012536,
+      "std": 0.062032,
+      "rms": 0.063294,
+      "peak": 0.28058,
+      "crest_factor": 4.45835,
+      "kurtosis": 2.946555
+    },
+    "IR007": {
+      "mean": 0.007129,
+      "std": 0.299274,
+      "rms": 0.299384,
+      "peak": 1.657732,
+      "crest_factor": 5.541666,
+      "kurtosis": 5.448239
+    },
+    "B007": {
+      "mean": 0.006316,
+      "std": 0.144609,
+      "rms": 0.144797,
+      "peak": 0.647954,
+      "crest_factor": 4.474737,
+      "kurtosis": 2.917403
+    },
+    "OR007@6": {
+      "mean": 0.008918,
+      "std": 0.602893,
+      "rms": 0.603005,
+      "peak": 3.270022,
+      "crest_factor": 5.423788,
+      "kurtosis": 7.765097
+    },
+    "OR007@3": {
+      "mean": 0.006378,
+      "std": 0.817327,
+      "rms": 0.817352,
+      "peak": 3.539969,
+      "crest_factor": 4.334728,
+      "kurtosis": 4.080503
+    },
+    "OR007@12": {
+      "mean": 0.005628,
+      "std": 0.251732,
+      "rms": 0.251818,
+      "peak": 2.00384,
+      "crest_factor": 7.946549,
+      "kurtosis": 8.256029
+    },
+    "IR014": {
+      "mean": 0.011181,
+      "std": 0.176018,
+      "rms": 0.176799,
+      "peak": 2.012084,
+      "crest_factor": 11.431673,
+      "kurtosis": 20.972945
+    },
+    "B014": {
+      "mean": 0.004582,
+      "std": 0.142612,
+      "rms": 0.142686,
+      "peak": 1.861547,
+      "crest_factor": 13.03157,
+      "kurtosis": 12.804312
+    },
+    "OR014@6": {
+      "mean": 0.005814,
+      "std": 0.096155,
+      "rms": 0.096448,
+      "peak": 0.523704,
+      "crest_factor": 5.428663,
+      "kurtosis": 3.204365
+    },
+    "IR021": {
+      "mean": 0.005866,
+      "std": 0.476147,
+      "rms": 0.476202,
+      "peak": 3.678039,
+      "crest_factor": 7.754984,
+      "kurtosis": 7.878715
+    },
+    "B021": {
+      "mean": 0.008677,
+      "std": 0.121987,
+      "rms": 0.122474,
+      "peak": 1.089046,
+      "crest_factor": 8.642172,
+      "kurtosis": 6.090502
+    },
+    "OR021@6": {
+      "mean": 0.003765,
+      "std": 0.568376,
+      "rms": 0.568389,
+      "peak": 6.541669,
+      "crest_factor": 11.509908,
+      "kurtosis": 22.420703
+    },
+    "OR021@3": {
+      "mean": 0.004538,
+      "std": 0.28899,
+      "rms": 0.28903,
+      "peak": 2.316244,
+      "crest_factor": 8.00128,
+      "kurtosis": 6.821028
+    },
+    "OR021@12": {
+      "mean": 0.019464,
+      "std": 0.347333,
+      "rms": 0.348709,
+      "peak": 4.247983,
+      "crest_factor": 12.158765,
+      "kurtosis": 33.885977
+    },
+    "IR028": {
+      "mean": 0.008091,
+      "std": 0.835064,
+      "rms": 0.835103,
+      "peak": 4.400929,
+      "crest_factor": 5.269719,
+      "kurtosis": 3.298891
+    },
+    "B028": {
+      "mean": 0.008349,
+      "std": 2.099377,
+      "rms": 2.099404,
+      "peak": 11.102673,
+      "crest_factor": 5.294526,
+      "kurtosis": 3.86328
+    }
+  },
+  "unreadable_records": [],
+  "records": [
+    {
+      "record_id": "97",
+      "label": "Normal",
+      "fault_type": "Normal",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 60985,
+      "duration_s": 5.082,
+      "native_sampling_rate": 48000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.012558,
+        "std": 0.070765,
+        "rms": 0.071871,
+        "peak": 0.28245,
+        "crest_factor": 3.929968,
+        "kurtosis": 2.783401
+      }
+    },
+    {
+      "record_id": "98",
+      "label": "Normal",
+      "fault_type": "Normal",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 120976,
+      "duration_s": 10.081,
+      "native_sampling_rate": 48000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.012564,
+        "std": 0.060368,
+        "rms": 0.061661,
+        "peak": 0.282603,
+        "crest_factor": 4.583142,
+        "kurtosis": 2.975504
+      }
+    },
+    {
+      "record_id": "99",
+      "label": "Normal",
+      "fault_type": "Normal",
+      "load_hp": 2,
+      "rpm": 1750,
+      "n_samples": 120976,
+      "duration_s": 10.081,
+      "native_sampling_rate": 48000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.012564,
+        "std": 0.060368,
+        "rms": 0.061661,
+        "peak": 0.282603,
+        "crest_factor": 4.583142,
+        "kurtosis": 2.975504
+      }
+    },
+    {
+      "record_id": "100",
+      "label": "Normal",
+      "fault_type": "Normal",
+      "load_hp": 3,
+      "rpm": 1725,
+      "n_samples": 121411,
+      "duration_s": 10.118,
+      "native_sampling_rate": 48000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.012458,
+        "std": 0.056627,
+        "rms": 0.057981,
+        "peak": 0.274666,
+        "crest_factor": 4.73715,
+        "kurtosis": 3.051811
+      }
+    },
+    {
+      "record_id": "105",
+      "label": "IR007",
+      "fault_type": "IR",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 121265,
+      "duration_s": 10.105,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.013444,
+        "std": 0.291216,
+        "rms": 0.291526,
+        "peak": 1.73903,
+        "crest_factor": 5.965266,
+        "kurtosis": 5.395864
+      }
+    },
+    {
+      "record_id": "106",
+      "label": "IR007",
+      "fault_type": "IR",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.005801,
+        "std": 0.292835,
+        "rms": 0.292892,
+        "peak": 1.580819,
+        "crest_factor": 5.39727,
+        "kurtosis": 5.542255
+      }
+    },
+    {
+      "record_id": "107",
+      "label": "IR007",
+      "fault_type": "IR",
+      "load_hp": 2,
+      "rpm": 1748,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004552,
+        "std": 0.299476,
+        "rms": 0.29951,
+        "peak": 1.63962,
+        "crest_factor": 5.47434,
+        "kurtosis": 5.563783
+      }
+    },
+    {
+      "record_id": "108",
+      "label": "IR007",
+      "fault_type": "IR",
+      "load_hp": 3,
+      "rpm": 1721,
+      "n_samples": 122917,
+      "duration_s": 10.243,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004718,
+        "std": 0.313571,
+        "rms": 0.313607,
+        "peak": 1.671457,
+        "crest_factor": 5.329788,
+        "kurtosis": 5.291053
+      }
+    },
+    {
+      "record_id": "118",
+      "label": "B007",
+      "fault_type": "B",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 122571,
+      "duration_s": 10.214,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.012607,
+        "std": 0.138662,
+        "rms": 0.139234,
+        "peak": 0.60702,
+        "crest_factor": 4.359725,
+        "kurtosis": 2.984716
+      }
+    },
+    {
+      "record_id": "119",
+      "label": "B007",
+      "fault_type": "B",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 121410,
+      "duration_s": 10.117,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003892,
+        "std": 0.139014,
+        "rms": 0.139068,
+        "peak": 0.659649,
+        "crest_factor": 4.743345,
+        "kurtosis": 2.963754
+      }
+    },
+    {
+      "record_id": "120",
+      "label": "B007",
+      "fault_type": "B",
+      "load_hp": 2,
+      "rpm": 1748,
+      "n_samples": 121556,
+      "duration_s": 10.13,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004564,
+        "std": 0.147181,
+        "rms": 0.147252,
+        "peak": 0.604584,
+        "crest_factor": 4.105779,
+        "kurtosis": 2.831413
+      }
+    },
+    {
+      "record_id": "121",
+      "label": "B007",
+      "fault_type": "B",
+      "load_hp": 3,
+      "rpm": 1722,
+      "n_samples": 121556,
+      "duration_s": 10.13,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.0042,
+        "std": 0.153577,
+        "rms": 0.153635,
+        "peak": 0.720562,
+        "crest_factor": 4.690096,
+        "kurtosis": 2.88973
+      }
+    },
+    {
+      "record_id": "130",
+      "label": "OR007@6",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.023171,
+        "std": 0.669104,
+        "rms": 0.669506,
+        "peak": 3.630425,
+        "crest_factor": 5.422546,
+        "kurtosis": 7.649435
+      }
+    },
+    {
+      "record_id": "131",
+      "label": "OR007@6",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1773,
+      "n_samples": 122426,
+      "duration_s": 10.202,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004061,
+        "std": 0.591933,
+        "rms": 0.591947,
+        "peak": 3.112257,
+        "crest_factor": 5.257658,
+        "kurtosis": 7.59499
+      }
+    },
+    {
+      "record_id": "132",
+      "label": "OR007@6",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1750,
+      "n_samples": 121410,
+      "duration_s": 10.117,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003912,
+        "std": 0.570157,
+        "rms": 0.57017,
+        "peak": 3.101293,
+        "crest_factor": 5.439239,
+        "kurtosis": 7.852218
+      }
+    },
+    {
+      "record_id": "133",
+      "label": "OR007@6",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1725,
+      "n_samples": 122571,
+      "duration_s": 10.214,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004529,
+        "std": 0.580377,
+        "rms": 0.580395,
+        "peak": 3.236114,
+        "crest_factor": 5.575709,
+        "kurtosis": 7.963746
+      }
+    },
+    {
+      "record_id": "144",
+      "label": "OR007@3",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.007192,
+        "std": 0.769382,
+        "rms": 0.769416,
+        "peak": 3.349006,
+        "crest_factor": 4.352662,
+        "kurtosis": 4.239277
+      }
+    },
+    {
+      "record_id": "145",
+      "label": "OR007@3",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1774,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.005939,
+        "std": 0.84799,
+        "rms": 0.848011,
+        "peak": 3.554893,
+        "crest_factor": 4.192037,
+        "kurtosis": 4.051109
+      }
+    },
+    {
+      "record_id": "146",
+      "label": "OR007@3",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1751,
+      "n_samples": 121556,
+      "duration_s": 10.13,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.005709,
+        "std": 0.854366,
+        "rms": 0.854385,
+        "peak": 3.636923,
+        "crest_factor": 4.256772,
+        "kurtosis": 3.941367
+      }
+    },
+    {
+      "record_id": "147",
+      "label": "OR007@3",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1725,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.006674,
+        "std": 0.79757,
+        "rms": 0.797598,
+        "peak": 3.619055,
+        "crest_factor": 4.53744,
+        "kurtosis": 4.090259
+      }
+    },
+    {
+      "record_id": "156",
+      "label": "OR007@12",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.011056,
+        "std": 0.237007,
+        "rms": 0.237264,
+        "peak": 1.762746,
+        "crest_factor": 7.429459,
+        "kurtosis": 8.053466
+      }
+    },
+    {
+      "record_id": "158",
+      "label": "OR007@12",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1773,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003997,
+        "std": 0.241685,
+        "rms": 0.241718,
+        "peak": 2.040023,
+        "crest_factor": 8.439686,
+        "kurtosis": 8.018923
+      }
+    },
+    {
+      "record_id": "159",
+      "label": "OR007@12",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1750,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003668,
+        "std": 0.272069,
+        "rms": 0.272094,
+        "peak": 2.305442,
+        "crest_factor": 8.472959,
+        "kurtosis": 8.661948
+      }
+    },
+    {
+      "record_id": "160",
+      "label": "OR007@12",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1724,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003791,
+        "std": 0.256169,
+        "rms": 0.256197,
+        "peak": 1.907151,
+        "crest_factor": 7.444092,
+        "kurtosis": 8.289778
+      }
+    },
+    {
+      "record_id": "169",
+      "label": "IR014",
+      "fault_type": "IR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.034433,
+        "std": 0.194811,
+        "rms": 0.19783,
+        "peak": 2.010784,
+        "crest_factor": 10.164183,
+        "kurtosis": 21.957383
+      }
+    },
+    {
+      "record_id": "170",
+      "label": "IR014",
+      "fault_type": "IR",
+      "load_hp": 1,
+      "rpm": 1774,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003598,
+        "std": 0.165475,
+        "rms": 0.165514,
+        "peak": 2.030114,
+        "crest_factor": 12.265521,
+        "kurtosis": 22.084265
+      }
+    },
+    {
+      "record_id": "171",
+      "label": "IR014",
+      "fault_type": "IR",
+      "load_hp": 2,
+      "rpm": 1752,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.00368,
+        "std": 0.163026,
+        "rms": 0.163067,
+        "peak": 1.880511,
+        "crest_factor": 11.532111,
+        "kurtosis": 21.686162
+      }
+    },
+    {
+      "record_id": "172",
+      "label": "IR014",
+      "fault_type": "IR",
+      "load_hp": 3,
+      "rpm": 1728,
+      "n_samples": 121701,
+      "duration_s": 10.142,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003013,
+        "std": 0.180761,
+        "rms": 0.180786,
+        "peak": 2.126926,
+        "crest_factor": 11.764878,
+        "kurtosis": 18.16397
+      }
+    },
+    {
+      "record_id": "185",
+      "label": "B014",
+      "fault_type": "B",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004688,
+        "std": 0.152642,
+        "rms": 0.152714,
+        "peak": 2.278153,
+        "crest_factor": 14.917809,
+        "kurtosis": 17.769217
+      }
+    },
+    {
+      "record_id": "186",
+      "label": "B014",
+      "fault_type": "B",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004525,
+        "std": 0.140805,
+        "rms": 0.140878,
+        "peak": 1.339765,
+        "crest_factor": 9.510111,
+        "kurtosis": 8.83706
+      }
+    },
+    {
+      "record_id": "187",
+      "label": "B014",
+      "fault_type": "B",
+      "load_hp": 2,
+      "rpm": 1749,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004579,
+        "std": 0.143384,
+        "rms": 0.143457,
+        "peak": 1.839091,
+        "crest_factor": 12.81979,
+        "kurtosis": 9.75225
+      }
+    },
+    {
+      "record_id": "188",
+      "label": "B014",
+      "fault_type": "B",
+      "load_hp": 3,
+      "rpm": 1724,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004535,
+        "std": 0.133617,
+        "rms": 0.133694,
+        "peak": 1.989181,
+        "crest_factor": 14.878569,
+        "kurtosis": 14.858723
+      }
+    },
+    {
+      "record_id": "197",
+      "label": "OR014@6",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.014375,
+        "std": 0.099648,
+        "rms": 0.100679,
+        "peak": 0.55056,
+        "crest_factor": 5.46846,
+        "kurtosis": 3.056007
+      }
+    },
+    {
+      "record_id": "198",
+      "label": "OR014@6",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003099,
+        "std": 0.093528,
+        "rms": 0.093579,
+        "peak": 0.401644,
+        "crest_factor": 4.292013,
+        "kurtosis": 2.940317
+      }
+    },
+    {
+      "record_id": "199",
+      "label": "OR014@6",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1749,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003245,
+        "std": 0.096764,
+        "rms": 0.096818,
+        "peak": 0.477442,
+        "crest_factor": 4.931338,
+        "kurtosis": 3.024096
+      }
+    },
+    {
+      "record_id": "200",
+      "label": "OR014@6",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1723,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.002535,
+        "std": 0.094681,
+        "rms": 0.094715,
+        "peak": 0.665171,
+        "crest_factor": 7.022839,
+        "kurtosis": 3.797041
+      }
+    },
+    {
+      "record_id": "209",
+      "label": "IR021",
+      "fault_type": "IR",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.014146,
+        "std": 0.525183,
+        "rms": 0.525373,
+        "peak": 3.787987,
+        "crest_factor": 7.210084,
+        "kurtosis": 7.445041
+      }
+    },
+    {
+      "record_id": "210",
+      "label": "IR021",
+      "fault_type": "IR",
+      "load_hp": 1,
+      "rpm": 1774,
+      "n_samples": 121556,
+      "duration_s": 10.13,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003042,
+        "std": 0.441827,
+        "rms": 0.441838,
+        "peak": 3.686059,
+        "crest_factor": 8.342562,
+        "kurtosis": 7.666744
+      }
+    },
+    {
+      "record_id": "211",
+      "label": "IR021",
+      "fault_type": "IR",
+      "load_hp": 2,
+      "rpm": 1752,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003428,
+        "std": 0.488852,
+        "rms": 0.488864,
+        "peak": 3.623116,
+        "crest_factor": 7.4113,
+        "kurtosis": 8.057952
+      }
+    },
+    {
+      "record_id": "212",
+      "label": "IR021",
+      "fault_type": "IR",
+      "load_hp": 3,
+      "rpm": 1728,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.002846,
+        "std": 0.448725,
+        "rms": 0.448734,
+        "peak": 3.614994,
+        "crest_factor": 8.055989,
+        "kurtosis": 8.345122
+      }
+    },
+    {
+      "record_id": "222",
+      "label": "B021",
+      "fault_type": "B",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.021387,
+        "std": 0.133917,
+        "rms": 0.135614,
+        "peak": 1.6596,
+        "crest_factor": 12.237684,
+        "kurtosis": 8.548545
+      }
+    },
+    {
+      "record_id": "223",
+      "label": "B021",
+      "fault_type": "B",
+      "load_hp": 1,
+      "rpm": 1774,
+      "n_samples": 121701,
+      "duration_s": 10.142,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.0043,
+        "std": 0.128978,
+        "rms": 0.12905,
+        "peak": 1.474749,
+        "crest_factor": 11.427725,
+        "kurtosis": 9.407289
+      }
+    },
+    {
+      "record_id": "224",
+      "label": "B021",
+      "fault_type": "B",
+      "load_hp": 2,
+      "rpm": 1754,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004558,
+        "std": 0.107172,
+        "rms": 0.107269,
+        "peak": 0.645517,
+        "crest_factor": 6.017746,
+        "kurtosis": 3.300581
+      }
+    },
+    {
+      "record_id": "225",
+      "label": "B021",
+      "fault_type": "B",
+      "load_hp": 3,
+      "rpm": 1729,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004461,
+        "std": 0.11788,
+        "rms": 0.117965,
+        "peak": 0.57632,
+        "crest_factor": 4.885533,
+        "kurtosis": 3.105592
+      }
+    },
+    {
+      "record_id": "234",
+      "label": "OR021@6",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 122426,
+      "duration_s": 10.202,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004731,
+        "std": 0.583153,
+        "rms": 0.583172,
+        "peak": 6.652937,
+        "crest_factor": 11.408185,
+        "kurtosis": 21.006187
+      }
+    },
+    {
+      "record_id": "235",
+      "label": "OR021@6",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1771,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003408,
+        "std": 0.561367,
+        "rms": 0.561378,
+        "peak": 6.207052,
+        "crest_factor": 11.056823,
+        "kurtosis": 21.970702
+      }
+    },
+    {
+      "record_id": "236",
+      "label": "OR021@6",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1748,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003373,
+        "std": 0.569981,
+        "rms": 0.569991,
+        "peak": 6.653343,
+        "crest_factor": 11.672713,
+        "kurtosis": 23.163875
+      }
+    },
+    {
+      "record_id": "237",
+      "label": "OR021@6",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1721,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.00355,
+        "std": 0.559003,
+        "rms": 0.559015,
+        "peak": 6.653343,
+        "crest_factor": 11.901912,
+        "kurtosis": 23.54205
+      }
+    },
+    {
+      "record_id": "246",
+      "label": "OR021@3",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121701,
+      "duration_s": 10.142,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.007821,
+        "std": 0.314886,
+        "rms": 0.314983,
+        "peak": 2.661175,
+        "crest_factor": 8.448631,
+        "kurtosis": 6.946838
+      }
+    },
+    {
+      "record_id": "247",
+      "label": "OR021@3",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1771,
+      "n_samples": 121991,
+      "duration_s": 10.166,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003246,
+        "std": 0.283936,
+        "rms": 0.283955,
+        "peak": 2.189301,
+        "crest_factor": 7.710039,
+        "kurtosis": 7.096746
+      }
+    },
+    {
+      "record_id": "248",
+      "label": "OR021@3",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1747,
+      "n_samples": 122281,
+      "duration_s": 10.19,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003742,
+        "std": 0.278832,
+        "rms": 0.278857,
+        "peak": 2.117504,
+        "crest_factor": 7.593521,
+        "kurtosis": 6.85808
+      }
+    },
+    {
+      "record_id": "249",
+      "label": "OR021@3",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1719,
+      "n_samples": 122136,
+      "duration_s": 10.178,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003344,
+        "std": 0.278305,
+        "rms": 0.278325,
+        "peak": 2.296995,
+        "crest_factor": 8.25293,
+        "kurtosis": 6.382449
+      }
+    },
+    {
+      "record_id": "258",
+      "label": "OR021@12",
+      "fault_type": "OR",
+      "load_hp": 0,
+      "rpm": 1796,
+      "n_samples": 121846,
+      "duration_s": 10.154,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.064552,
+        "std": 0.382736,
+        "rms": 0.388141,
+        "peak": 4.909602,
+        "crest_factor": 12.649007,
+        "kurtosis": 34.950018
+      }
+    },
+    {
+      "record_id": "259",
+      "label": "OR021@12",
+      "fault_type": "OR",
+      "load_hp": 1,
+      "rpm": 1771,
+      "n_samples": 122426,
+      "duration_s": 10.202,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.006739,
+        "std": 0.35174,
+        "rms": 0.351804,
+        "peak": 4.284227,
+        "crest_factor": 12.177866,
+        "kurtosis": 33.70323
+      }
+    },
+    {
+      "record_id": "260",
+      "label": "OR021@12",
+      "fault_type": "OR",
+      "load_hp": 2,
+      "rpm": 1746,
+      "n_samples": 122716,
+      "duration_s": 10.226,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.003623,
+        "std": 0.343026,
+        "rms": 0.343045,
+        "peak": 4.108391,
+        "crest_factor": 11.976234,
+        "kurtosis": 33.817481
+      }
+    },
+    {
+      "record_id": "261",
+      "label": "OR021@12",
+      "fault_type": "OR",
+      "load_hp": 3,
+      "rpm": 1718,
+      "n_samples": 121701,
+      "duration_s": 10.142,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.002942,
+        "std": 0.311829,
+        "rms": 0.311843,
+        "peak": 3.689714,
+        "crest_factor": 11.831951,
+        "kurtosis": 33.073181
+      }
+    },
+    {
+      "record_id": "3001",
+      "label": "IR028",
+      "fault_type": "IR",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 120801,
+      "duration_s": 10.067,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.007701,
+        "std": 0.83836,
+        "rms": 0.838396,
+        "peak": 4.785144,
+        "crest_factor": 5.7075,
+        "kurtosis": 3.396748
+      }
+    },
+    {
+      "record_id": "3002",
+      "label": "IR028",
+      "fault_type": "IR",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 121351,
+      "duration_s": 10.113,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.008186,
+        "std": 0.83752,
+        "rms": 0.83756,
+        "peak": 3.930654,
+        "crest_factor": 4.692981,
+        "kurtosis": 3.195644
+      }
+    },
+    {
+      "record_id": "3003",
+      "label": "IR028",
+      "fault_type": "IR",
+      "load_hp": 2,
+      "rpm": 1750,
+      "n_samples": 121351,
+      "duration_s": 10.113,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.008388,
+        "std": 0.841301,
+        "rms": 0.841343,
+        "peak": 4.541004,
+        "crest_factor": 5.397326,
+        "kurtosis": 3.286266
+      }
+    },
+    {
+      "record_id": "3004",
+      "label": "IR028",
+      "fault_type": "IR",
+      "load_hp": 3,
+      "rpm": 1730,
+      "n_samples": 121535,
+      "duration_s": 10.128,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.008088,
+        "std": 0.823073,
+        "rms": 0.823113,
+        "peak": 4.346913,
+        "crest_factor": 5.281067,
+        "kurtosis": 3.316908
+      }
+    },
+    {
+      "record_id": "3005",
+      "label": "B028",
+      "fault_type": "B",
+      "load_hp": 0,
+      "rpm": 1797,
+      "n_samples": 120801,
+      "duration_s": 10.067,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.004999,
+        "std": 2.077112,
+        "rms": 2.077118,
+        "peak": 10.930962,
+        "crest_factor": 5.262561,
+        "kurtosis": 3.871474
+      }
+    },
+    {
+      "record_id": "3006",
+      "label": "B028",
+      "fault_type": "B",
+      "load_hp": 1,
+      "rpm": 1772,
+      "n_samples": 121351,
+      "duration_s": 10.113,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.009207,
+        "std": 2.029831,
+        "rms": 2.029852,
+        "peak": 11.673961,
+        "crest_factor": 5.751139,
+        "kurtosis": 3.910286
+      }
+    },
+    {
+      "record_id": "3007",
+      "label": "B028",
+      "fault_type": "B",
+      "load_hp": 2,
+      "rpm": 1750,
+      "n_samples": 120984,
+      "duration_s": 10.082,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.000233,
+        "std": 2.145689,
+        "rms": 2.145689,
+        "peak": 10.441868,
+        "crest_factor": 4.866439,
+        "kurtosis": 3.772284
+      }
+    },
+    {
+      "record_id": "3008",
+      "label": "B028",
+      "fault_type": "B",
+      "load_hp": 3,
+      "rpm": 1730,
+      "n_samples": 120984,
+      "duration_s": 10.082,
+      "native_sampling_rate": 12000,
+      "sampling_rate": 12000,
+      "statistics": {
+        "mean": 0.018957,
+        "std": 2.144874,
+        "rms": 2.144957,
+        "peak": 11.363903,
+        "crest_factor": 5.297962,
+        "kurtosis": 3.899076
+      }
+    }
+  ]
+}
