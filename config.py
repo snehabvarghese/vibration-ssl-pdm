@@ -114,11 +114,19 @@ class DatasetConfig:
 class PreprocessConfig:
     """Filtering -> downsampling -> segmentation -> normalization.
 
-    The reference paper uses 1-3 s windows with 50 % overlap on compressor
-    data. CWRU records are only ~10 s long at 12 kHz, so a 1 s window
-    (12 000 samples before downsampling) is used by default; after
-    downsampling by 4 this is 3 000 samples per window, which is a practical
-    input length for a 1-D CNN on CPU.
+    DEVIATIONS FROM THE PAPER, AND WHY
+    ----------------------------------
+    * Window length. The paper uses 1-3 s windows on continuously monitored
+      compressor data. CWRU recordings are only ~10 s long, so 1 s windows
+      with 50 % overlap yield just ~19 segments per recording (~1.2 k in
+      total) -- far too few for contrastive pretraining. We use 0.25 s
+      instead, which still spans ~25-40 fault-impulse periods (BPFO ~107 Hz,
+      BPFI ~162 Hz at 1797 rpm), giving ~5 k segments.
+    * No downsampling by default. CWRU bearing signatures are impulse
+      responses that excite structural resonances in the 2-4 kHz band.
+      Decimating to 3 kHz (Nyquist 1.5 kHz) would remove exactly that band,
+      so `downsample_factor` defaults to 1. It is kept configurable because a
+      Phase 2 edge device may need the cheaper input.
     """
 
     # Band-pass filter applied to the raw signal (Hz). Set `filter_enabled`
@@ -129,9 +137,9 @@ class PreprocessConfig:
     filter_high_hz: float = 5_000.0    # below Nyquist (6 kHz) for 12 kHz data
     filter_order: int = 4
 
-    downsample_factor: int = 4         # 12 kHz -> 3 kHz
+    downsample_factor: int = 1         # 1 = keep the native rate (see docstring)
 
-    window_seconds: float = 1.0        # 1-3 s in the paper
+    window_seconds: float = 0.25       # 1-3 s in the paper; see docstring
     overlap: float = 0.5               # 50 % overlap
 
     normalization: str = "zscore"      # "zscore" | "minmax" | "none"
