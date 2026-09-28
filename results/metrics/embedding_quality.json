@@ -2,6 +2,6 @@
   "n_points": 4000,
   "embedding_dim": 128,
   "split": "all",
-  "silhouette_score_128d": 0.33387291431427,
+  "silhouette_score_128d": 0.33529824018478394,
   "umap_available": true
 }

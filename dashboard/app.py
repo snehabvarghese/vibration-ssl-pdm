@@ -33,13 +33,23 @@ RUN
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from typing import Dict, List, Optional, Tuple
 
 import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+import __main__
+from anomaly_detection.anomaly_detector import HealthMonitor
+__main__.HealthMonitor = HealthMonitor
 
 from config import CFG, CHECKPOINTS_DIR, DATA_RAW_DIR
 from evaluation.visualization import load_embeddings
@@ -168,22 +178,39 @@ def sidebar() -> Tuple[str, object]:
 
 def read_upload(upload) -> Optional[Tuple[np.ndarray, int]]:
     import io
-
     import scipy.io as sio
+    from preprocessing.loader import _resample_to
 
-    rate = st.sidebar.number_input("Sampling rate of the uploaded file (Hz)",
-                                   min_value=1000, value=12_000, step=1000)
+    # CWRU normal files (97-100) are recorded at 48 kHz, while faults are 12 kHz
+    is_normal_cwru = any(upload.name.startswith(p) for p in ["97", "98", "99", "100"])
+    default_rate = 48_000 if is_normal_cwru else 12_000
+
+    rate = st.sidebar.number_input("Source Sampling Rate (Hz)",
+                                   min_value=1000, value=default_rate, step=1000,
+                                   help="CWRU Normal baseline files (97-100) are recorded at 48,000 Hz; fault files at 12,000 Hz.")
+    
     if upload.name.endswith(".npy"):
-        return np.load(io.BytesIO(upload.getvalue())).astype(float).ravel(), int(rate)
-    mat = sio.loadmat(io.BytesIO(upload.getvalue()))
-    keys = [k for k in mat if k.endswith("_time")] or [
-        k for k, v in mat.items() if not k.startswith("__") and getattr(v, "size", 0) > 1000
-    ]
-    if not keys:
-        st.error("No 1-D signal variable found in that .mat file.")
-        return None
-    key = st.sidebar.selectbox("Signal variable", keys)
-    return np.asarray(mat[key]).astype(float).ravel(), int(rate)
+        sig = np.load(io.BytesIO(upload.getvalue())).astype(float).ravel()
+    else:
+        mat = sio.loadmat(io.BytesIO(upload.getvalue()))
+        keys = [k for k in mat if isinstance(k, str) and k.endswith("_time")] or [
+            k for k, v in mat.items() if isinstance(k, str) and not k.startswith("__") and getattr(v, "size", 0) > 1000
+        ]
+        if not keys:
+            st.error("No 1-D signal variable found in that .mat file.")
+            return None
+        
+        # Pre-select _DE_time if present, as model was trained on Drive-End accelerometer
+        de_keys = [k for k in keys if k.endswith("_DE_time")]
+        default_idx = keys.index(de_keys[0]) if de_keys else 0
+        key = st.sidebar.selectbox("Signal variable (Channel)", keys, index=default_idx)
+        sig = np.asarray(mat[key]).astype(float).ravel()
+
+    # Resample to the target model frequency (12,000 Hz) if needed
+    if rate != CFG.dataset.sampling_rate:
+        sig = _resample_to(sig, src_rate=int(rate), dst_rate=CFG.dataset.sampling_rate)
+
+    return sig, CFG.dataset.sampling_rate
 
 
 def main() -> None:

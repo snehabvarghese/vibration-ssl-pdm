@@ -1,5 +1,5 @@
 {
-  "output": "/home/ubuntu/repos/vibration-ssl-pdm/data/processed/segments.npz",
+  "output": "/Users/snehabvarghese/vibration-ssl-pdm/data/processed/segments.npz",
   "n_segments": 5066,
   "window_size": 3000,
   "effective_sampling_rate_hz": 12000,
