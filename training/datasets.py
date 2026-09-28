@@ -74,31 +74,40 @@ def load_processed(path: Path = DEFAULT_PROCESSED) -> ProcessedData:
 
 
 class ContrastiveSegmentDataset(Dataset):
-    """Yields two augmented views of one segment. Labels are never touched."""
+    """Yields two augmented views of one segment (+ optional record ID integer). Labels are never touched."""
 
     def __init__(
         self,
         segments: np.ndarray,
+        record_ids: Optional[np.ndarray] = None,
         aug_cfg: Optional[AugmentConfig] = None,
         seed: int = CFG.seed,
     ) -> None:
         self.segments = segments
         self.aug_cfg = aug_cfg or CFG.augment
         self._seed = seed
+        self.record_ids = record_ids
+        if record_ids is not None:
+            unique_recs = sorted(list(set(record_ids.tolist())))
+            rec_map = {rec: idx for idx, rec in enumerate(unique_recs)}
+            self.rec_ints = np.array([rec_map[r] for r in record_ids], dtype=np.int64)
+        else:
+            self.rec_ints = None
 
     def __len__(self) -> int:
         return self.segments.shape[0]
 
-    def __getitem__(self, i: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, i: int) -> Tuple[torch.Tensor, torch.Tensor] | Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         # A per-item RNG keeps augmentation reproducible and worker-safe while
         # still differing every epoch (torch reshuffles the order, and the
         # epoch counter is folded in by `set_epoch`).
         rng = np.random.default_rng((self._seed, i, getattr(self, "_epoch", 0)))
         a, b = make_two_views(self.segments[i], self.aug_cfg, rng)
-        return (
-            torch.from_numpy(a).float().unsqueeze(0),
-            torch.from_numpy(b).float().unsqueeze(0),
-        )
+        va = torch.from_numpy(a).float().unsqueeze(0)
+        vb = torch.from_numpy(b).float().unsqueeze(0)
+        if self.rec_ints is not None:
+            return va, vb, torch.tensor(self.rec_ints[i], dtype=torch.long)
+        return va, vb
 
     def set_epoch(self, epoch: int) -> None:
         self._epoch = epoch

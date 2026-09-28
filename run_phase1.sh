@@ -189,6 +189,8 @@ if should_run 9; then
     "$PY" -m training.train_classifier
     ok "downstream_classification.json written"
   fi
+  "$PY" -m training.train_finetune
+  ok "finetune_classification.json written"
 fi
 
 # --- Step 10: Supervised baseline ---

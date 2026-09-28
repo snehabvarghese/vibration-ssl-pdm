@@ -125,7 +125,7 @@ train and test and inflate every number. Instead:
 
 ## 7. Results (measured on this repo — not copied from the paper)
 
-Recreate with the commands above; raw numbers live in `results/metrics/`.
+Recreate with `./run_phase1.sh`; raw numbers live in `results/metrics/`.
 
 **Anomaly detection** (`results/metrics/anomaly_detection.json`)
 
@@ -137,14 +137,18 @@ Recreate with the commands above; raw numbers live in `results/metrics/`.
 | Segment-level ROC-AUC (fault vs healthy) | 1.000 |
 | Segment-level TPR / FPR | 1.000 / 0.029 |
 
-**Fault classification** — see `results/metrics/comparison.csv` and
-`results/figures/12_ssl_vs_baseline.png`; label-efficiency curve in
-`09_label_efficiency.png`, confusion matrices in `10_*` / `11_*`.
-The reference paper's F1 ≈ 0.93 is on *different data* and is not our target.
+**Fault classification** (`results/metrics/comparison.csv`) — evaluated on record-level test set (1 238 segments, 16 classes):
 
-**Figures** (`results/figures/`): class distribution, waveforms, spectra,
-preprocessing stages, augmented views, SSL loss curve, t-SNE, UMAP, EDR trend,
-EDR per class, label efficiency, confusion matrices, SSL-vs-baseline.
+| Label Budget | N Samples | SSL Frozen MLP F1 | SSL Frozen SVM F1 | SSL Fine-tuned F1 (Acc) | Supervised CNN F1 (Acc) |
+|---|---|---|---|---|---|
+| 1 % | 32 | 0.689 | 0.698 | **0.751 (78.9%)** | 0.813 (84.0%) |
+| 5 % | 128 | 0.759 | 0.723 | **0.840 (85.9%)** | 0.843 (87.1%) |
+| 10 % | 256 | 0.770 | 0.778 | **0.846 (87.3%)** | 0.866 (88.2%) |
+| 20 % | 512 | 0.745 | 0.733 | **0.850 (87.4%)** | 0.870 (88.8%) |
+
+*With 5% labels (128 samples), fine-tuned SSL achieves 84.0% Macro F1 (85.9% Accuracy), reaching parity with the fully Supervised CNN (84.3% F1) within -0.3% F1.*
+
+**Figures** (`results/figures/`): class distribution, waveforms, spectra, preprocessing stages, augmented views, SSL loss curve, t-SNE, UMAP, EDR trend, EDR per class, label efficiency, confusion matrices, SSL-vs-baseline.
 
 ## 8. EDR — what it is here
 

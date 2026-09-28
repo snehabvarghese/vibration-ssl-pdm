@@ -56,14 +56,19 @@ def run_epoch(
     total, n_batches = 0.0, 0
 
     with torch.set_grad_enabled(is_train):
-        for view_a, view_b in loader:
-            # NT-Xent needs >= 2 samples to have any negatives; BatchNorm in
-            # the projection head also needs >= 2.
+        for batch in loader:
+            if len(batch) == 3:
+                view_a, view_b, rec_ids = batch
+                rec_ids = rec_ids.to(device)
+            else:
+                view_a, view_b = batch
+                rec_ids = None
+
             if view_a.shape[0] < 2:
                 continue
             view_a, view_b = view_a.to(device), view_b.to(device)
             z_a, z_b = model(view_a, view_b)
-            loss = criterion(z_a, z_b)
+            loss = criterion(z_a, z_b, record_ids=rec_ids)
             if is_train:
                 optimizer.zero_grad(set_to_none=True)
                 loss.backward()
@@ -71,6 +76,22 @@ def run_epoch(
             total += float(loss.item())
             n_batches += 1
     return total / max(1, n_batches)
+
+
+def evaluate_knn_val(model: SiameseContrastiveModel, data, train_idx, val_idx, device: str) -> float:
+    """Evaluate 5-NN accuracy on validation embeddings to select best representation checkpoint."""
+    from sklearn.neighbors import KNeighborsClassifier
+
+    model.eval()
+    with torch.no_grad():
+        t_x = torch.from_numpy(data.segments[train_idx]).float().to(device)
+        v_x = torch.from_numpy(data.segments[val_idx]).float().to(device)
+        t_emb = model.encoder(t_x).cpu().numpy()
+        v_emb = model.encoder(v_x).cpu().numpy()
+
+    knn = KNeighborsClassifier(n_neighbors=5)
+    knn.fit(t_emb, data.labels[train_idx])
+    return float(knn.score(v_emb, data.labels[val_idx]))
 
 
 def plot_loss(history: Dict[str, List[float]], out_path: Path) -> None:
@@ -108,11 +129,14 @@ def main(argv: List[str] | None = None) -> int:
 
     data = load_processed()
     split = make_split(data.record_ids, data.labels, data.loads)
-    print(f"Segments: {len(data)}  split sizes: {split.sizes()}")
+    
+    # Pretraining pool: train + val records (labels are never used; test set stays strictly held out)
+    pretrain_idx = np.concatenate([split.train_idx, split.val_idx])
+    print(f"Segments: {len(data)}  pretrain pool: {len(pretrain_idx)}  test holdout: {len(split.test_idx)}")
     print("Labels are NOT used in this stage.")
 
-    train_ds = ContrastiveSegmentDataset(data.segments[split.train_idx])
-    val_ds = ContrastiveSegmentDataset(data.segments[split.val_idx])
+    train_ds = ContrastiveSegmentDataset(data.segments[pretrain_idx], record_ids=data.record_ids[pretrain_idx])
+    val_ds = ContrastiveSegmentDataset(data.segments[split.val_idx], record_ids=data.record_ids[split.val_idx])
     train_loader = DataLoader(
         train_ds, batch_size=args.batch_size, shuffle=True,
         num_workers=CFG.ssl.num_workers, drop_last=True,
@@ -131,8 +155,9 @@ def main(argv: List[str] | None = None) -> int:
 
     print(f"Device: {device}  encoder parameters: {model.encoder.n_parameters():,}")
 
-    history: Dict[str, List[float]] = {"train_loss": [], "val_loss": []}
-    best_val = float("inf")
+    history: Dict[str, List[float]] = {"train_loss": [], "val_loss": [], "val_knn_acc": []}
+    best_val_loss = float("inf")
+    best_val_acc = 0.0
     ckpt_path = CHECKPOINTS_DIR / CFG.ssl.checkpoint_name
     t0 = time.time()
 
@@ -140,14 +165,19 @@ def main(argv: List[str] | None = None) -> int:
         train_ds.set_epoch(epoch)
         train_loss = run_epoch(model, train_loader, criterion, device, optimizer)
         val_loss = run_epoch(model, val_loader, criterion, device) if len(val_ds) else float("nan")
+        val_acc = evaluate_knn_val(model, data, split.train_idx, split.val_idx, device)
         scheduler.step()
+        
         history["train_loss"].append(train_loss)
         history["val_loss"].append(val_loss)
+        history["val_knn_acc"].append(val_acc)
 
         marker = ""
-        if np.isfinite(val_loss) and val_loss < best_val:
-            best_val = val_loss
-            marker = "  <- best"
+        # Save checkpoint based on best validation kNN accuracy (representation quality)
+        if val_acc > best_val_acc or (val_acc == best_val_acc and val_loss < best_val_loss):
+            best_val_acc = val_acc
+            best_val_loss = val_loss
+            marker = f"  <- best val kNN acc {val_acc:.4f}"
             torch.save(
                 {
                     "encoder_state_dict": model.encoder.state_dict(),
@@ -155,11 +185,11 @@ def main(argv: List[str] | None = None) -> int:
                     "model_config": CFG.model.__dict__,
                     "epoch": epoch,
                     "val_loss": val_loss,
+                    "val_knn_acc": val_acc,
                 },
                 ckpt_path,
             )
-        print(f"epoch {epoch:3d}/{args.epochs}  train {train_loss:.4f}  "
-              f"val {val_loss:.4f}{marker}")
+        print(f"epoch {epoch:3d}/{args.epochs}  train {train_loss:.4f}  val_loss {val_loss:.4f}  val_knn_acc {val_acc:.4f}{marker}")
 
     elapsed = time.time() - t0
     metrics = {
@@ -167,17 +197,18 @@ def main(argv: List[str] | None = None) -> int:
         "batch_size": args.batch_size,
         "lr": args.lr,
         "temperature": args.temperature,
-        "best_val_loss": best_val,
+        "best_val_loss": best_val_loss,
+        "best_val_knn_acc": best_val_acc,
         "final_train_loss": history["train_loss"][-1],
         "train_seconds": round(elapsed, 1),
-        "n_pretrain_segments": int(split.train_idx.size),
+        "n_pretrain_segments": int(pretrain_idx.size),
         "encoder_parameters": model.encoder.n_parameters(),
         "history": history,
     }
     (METRICS_DIR / "ssl_training.json").write_text(json.dumps(metrics, indent=2))
     plot_loss(history, FIGURES_DIR / "04_ssl_loss_curve.png")
 
-    print(f"\nBest validation NT-Xent loss: {best_val:.4f}")
+    print(f"\nBest validation kNN accuracy: {best_val_acc:.4f} (NT-Xent loss: {best_val_loss:.4f})")
     print(f"Checkpoint: {ckpt_path}")
     print(f"Trained in {elapsed:.0f} s")
     return 0

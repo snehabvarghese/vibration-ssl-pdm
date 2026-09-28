@@ -161,18 +161,18 @@ class PreprocessConfig:
 @dataclass
 class AugmentConfig:
     jitter_prob: float = 0.8
-    jitter_sigma: float = 0.05         # relative to the (unit-variance) signal
+    jitter_sigma: float = 0.03         # relative to the (unit-variance) signal
 
-    scaling_prob: float = 0.8
-    scaling_sigma: float = 0.2
+    scaling_prob: float = 0.2          # softened from 0.8 so amplitude/RMS info survives
+    scaling_sigma: float = 0.05
 
-    time_mask_prob: float = 0.5
-    time_mask_max_frac: float = 0.15   # fraction of the window that can be zeroed
+    time_mask_prob: float = 0.2
+    time_mask_max_frac: float = 0.10   # fraction of the window that can be zeroed
 
-    permutation_prob: float = 0.3
+    permutation_prob: float = 0.0      # set to 0 to preserve periodic impulse train structure
     permutation_segments: int = 5
 
-    time_shift_prob: float = 0.5
+    time_shift_prob: float = 0.8
     time_shift_max_frac: float = 0.25  # circular shift up to 25 % of the window
 
 
@@ -188,7 +188,7 @@ class ModelConfig:
     kernel_sizes: List[int] = field(default_factory=lambda: [15, 9, 7, 5])
     strides: List[int] = field(default_factory=lambda: [2, 2, 2, 2])
     pool_size: int = 2
-    dropout: float = 0.1
+    dropout: float = 0.0               # 0.0 during pretraining (standard SimCLR)
 
     embedding_dim: int = 128           # paper's practical trade-off
     projection_hidden_dim: int = 256
@@ -200,13 +200,13 @@ class ModelConfig:
 # --------------------------------------------------------------------------
 @dataclass
 class SSLTrainConfig:
-    epochs: int = 50
+    epochs: int = 150
     batch_size: int = 128
     lr: float = 1e-3
     weight_decay: float = 1e-5
     temperature: float = 0.1           # NT-Xent temperature
     num_workers: int = 0
-    val_fraction: float = 0.1          # of the *pretraining* pool, for loss monitoring
+    val_fraction: float = 0.2          # of the pretraining pool, for validation monitoring
     checkpoint_name: str = "ssl_encoder.pt"
 
 

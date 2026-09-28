@@ -87,13 +87,21 @@ class SiameseContrastiveModel(nn.Module):
 
 
 class NTXentLoss(nn.Module):
-    """NT-Xent / InfoNCE loss over 2N views built from N segments."""
+    """NT-Xent / InfoNCE loss over 2N views built from N segments.
+    Optionally supports record-aware negative masking to eliminate false negatives
+    coming from overlapping segments of the same record/class.
+    """
 
     def __init__(self, temperature: Optional[float] = None) -> None:
         super().__init__()
         self.temperature = temperature if temperature is not None else CFG.ssl.temperature
 
-    def forward(self, z_a: torch.Tensor, z_b: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        z_a: torch.Tensor,
+        z_b: torch.Tensor,
+        record_ids: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         n = z_a.shape[0]
         if n < 2:
             raise ValueError("NT-Xent needs a batch size of at least 2 to have negatives")
@@ -105,6 +113,20 @@ class NTXentLoss(nn.Module):
         # Mask out self-similarity so an anchor cannot match itself.
         eye = torch.eye(2 * n, dtype=torch.bool, device=z.device)
         sim = sim.masked_fill(eye, float("-inf"))
+
+        if record_ids is not None:
+            # Mask out false negatives coming from the same recording/file
+            rec_2n = torch.cat([record_ids, record_ids], dim=0)
+            same_rec_mask = (rec_2n.unsqueeze(0) == rec_2n.unsqueeze(1))
+            # Keep true positive pairs (i <-> i+n)
+            pos_mask = torch.zeros((2 * n, 2 * n), dtype=torch.bool, device=z.device)
+            pos_idx = torch.arange(n, device=z.device)
+            pos_mask[pos_idx, pos_idx + n] = True
+            pos_mask[pos_idx + n, pos_idx] = True
+
+            # False negatives: same record, but not self, and not true positive pair
+            false_neg_mask = same_rec_mask & (~pos_mask) & (~eye)
+            sim = sim.masked_fill(false_neg_mask, float("-inf"))
 
         # Positive of index i is i+N (and vice versa).
         targets = torch.cat(

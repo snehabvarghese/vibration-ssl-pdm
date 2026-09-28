@@ -40,8 +40,7 @@ import numpy as np
 
 from config import FIGURES_DIR, METRICS_DIR
 
-SSL_FILE = METRICS_DIR / "downstream_classification.json"
-BASE_FILE = METRICS_DIR / "baseline_classification.json"
+FINETUNE_FILE = METRICS_DIR / "finetune_classification.json"
 
 
 def _require(path: Path, how: str) -> dict:
@@ -50,12 +49,25 @@ def _require(path: Path, how: str) -> dict:
     return json.loads(path.read_text())
 
 
-def build_rows(ssl: dict, base: dict) -> List[Dict[str, object]]:
+def build_rows(ssl: dict, base: dict, finetune: Optional[dict] = None) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     for clf, by_frac in ssl["results"].items():
         for frac, res in by_frac.items():
             rows.append({
                 "method": f"SSL + {clf}",
+                "label_fraction": float(frac),
+                "n_labelled": res["n_labelled"],
+                "accuracy_mean": res["accuracy_mean"],
+                "accuracy_std": res["accuracy_std"],
+                "precision_macro_mean": res["precision_macro_mean"],
+                "recall_macro_mean": res["recall_macro_mean"],
+                "f1_macro_mean": res["f1_macro_mean"],
+                "f1_macro_std": res["f1_macro_std"],
+            })
+    if finetune and "results" in finetune:
+        for frac, res in finetune["results"].items():
+            rows.append({
+                "method": "SSL Fine-tuned",
                 "label_fraction": float(frac),
                 "n_labelled": res["n_labelled"],
                 "accuracy_mean": res["accuracy_mean"],
@@ -101,12 +113,18 @@ def plot_comparison(rows: List[Dict[str, object]], out_path: Path) -> None:
     plt.close(fig)
 
 
+SSL_FILE = METRICS_DIR / "downstream_classification.json"
+BASE_FILE = METRICS_DIR / "baseline_classification.json"
+FINETUNE_FILE = METRICS_DIR / "finetune_classification.json"
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     argparse.ArgumentParser(description="Compare SSL pipeline with the baseline").parse_args(argv)
 
     ssl = _require(SSL_FILE, "python -m training.train_classifier")
     base = _require(BASE_FILE, "python -m training.train_baseline")
-    rows = build_rows(ssl, base)
+    finetune = json.loads(FINETUNE_FILE.read_text()) if FINETUNE_FILE.exists() else None
+    rows = build_rows(ssl, base, finetune)
 
     header = f"{'method':28s} {'labels%':>8s} {'n':>5s} {'acc':>14s} {'macroF1':>14s}"
     print(header)
