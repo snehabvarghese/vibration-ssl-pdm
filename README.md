@@ -21,7 +21,7 @@ Industry has lots of unlabelled vibration data and very few labelled faults. So 
    baseline (our EDR approximation),
 3. classify faults from those frozen embeddings with **1–20 % of the labels**,
 4. compare against a supervised CNN trained on the same label budget,
-5. serve everything in a Streamlit dashboard.
+5. serve everything through a REST API, a React web app and the original Streamlit dashboard.
 
 ## 2. Architecture
 
@@ -38,7 +38,10 @@ CWRU .mat recording
    ├─ edr.py / anomaly_detector.py   KL(current ‖ healthy) per second → NORMAL/ANOMALOUS
    ├─ classifier.py                  SVM-RBF / MLP on frozen embeddings (few labels)
    ├─ baseline_cnn.py                supervised CNN from scratch (same label budget)
-   └─ dashboard/app.py               Streamlit monitor
+   └─ core/analysis.py               Streamlit-free inference: raw signal → verdict
+        ├─ api/main.py               FastAPI service (JSON)
+        │    └─ frontend/            React + TypeScript web app
+        └─ dashboard/app.py          Streamlit monitor (original UI)
 ```
 
 The projection head exists only during pretraining; embeddings always come from the
@@ -75,15 +78,86 @@ everything downstream only sees `(segments, labels, record_ids)`.
 
 ## 4. Installation
 
+## 4. Installation
+
+Requirements: **Python 3.9–3.11** (developed on 3.10; 3.12 is not supported by the
+pinned ML packages) and **Node.js 18+** for the web app.
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
+# Linux / macOS
+python3.10 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-CPU is enough (the full pipeline below runs in well under an hour on CPU). CUDA/MPS
-are used automatically when available (`config.get_device()`).
+```powershell
+# Windows PowerShell
+py -3.10 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-## 5. Running the pipeline
+CUDA/MPS are used automatically when available (`config.get_device()`); CPU is enough.
+
+The raw dataset (≈ 100 MB) is not committed. Download it once:
+
+```bash
+python -m preprocessing.download_cwru --all
+```
+
+The trained model (`checkpoints/ssl_encoder.pt`, `checkpoints/health_monitor.joblib`)
+and `results/embeddings/embeddings.npz` **are committed**, so the web app runs
+without retraining.
+
+## 5. Running the web app
+
+Two terminals, both from the repo root.
+
+**Backend (FastAPI)**
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:PYTHONPATH = (Get-Location).Path
+python -m uvicorn api.main:app --reload --port 8000
+```
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+export PYTHONPATH=.
+python -m uvicorn api.main:app --reload --port 8000
+```
+
+Health check: http://127.0.0.1:8000/health (should report `"model_loaded": true`);
+interactive API docs: http://127.0.0.1:8000/docs.
+
+**Frontend (React + Vite)**
+
+```bash
+cd frontend
+npm install        # first time only
+npm run dev
+```
+
+Open http://localhost:5173. If the backend runs on another port, set
+`VITE_API_URL` in `frontend/.env`.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | service and model status |
+| `POST /analyse` | upload `.mat` / `.npy` / `.csv` + sampling rate → verdict, waveform, EDR trend, embedding points |
+| `GET /recordings` | CWRU recordings available in `data/raw/` |
+| `POST /analyse/recording/{file_id}` | analyse a dataset recording |
+| `GET /map` | background embedding map (PCA) |
+
+| Page | Purpose |
+|---|---|
+| `/analyse` | pick a dataset recording or upload a file; status, predicted fault, EDR, charts |
+| `/history` | analyses from this browser session (stored in localStorage) |
+| `/live` | Phase 2 placeholder (no streaming yet) |
+
+Run the tests with `pytest -q`.
+
+## 6. Running the pipeline
 
 ```bash
 export PYTHONPATH=.
@@ -103,11 +177,19 @@ python -m evaluation.evaluate                   # 11. comparison table + figure
 
 streamlit run dashboard/app.py                  # 12. dashboard
 ```
+On Windows PowerShell, replace `export PYTHONPATH=.` with
+`$env:PYTHONPATH = (Get-Location).Path`. Retraining is optional because the trained model
+is committed; run it only if you change the data or model.
+
+**Reproducibility:** results from retraining vary slightly between runs and hardware
+(GPU vs CPU). The committed `checkpoints/` and `results/` come from one canonical
+run, so the numbers below match the committed model. If you retrain, expect small
+differences and do not mix new metrics with the committed checkpoints.
 
 Every stage caches its artefacts, so stages can be re-run independently.
 All randomness goes through `config.set_seed(42)`.
 
-## 6. Avoiding leakage
+## 7. Avoiding leakage
 
 Windows overlap by 50 %, so a random segment split would put near-duplicates in both
 train and test and inflate every number. Instead:
@@ -123,7 +205,7 @@ train and test and inflate every number. Instead:
   at each boundary. This mirrors deployment: the baseline is learned from the machine's
   own healthy commissioning period. Faults still come from unseen test records.
 
-## 7. Results (measured on this repo — not copied from the paper)
+## 8. Results (measured on this repo — not copied from the paper)
 
 Recreate with `./run_phase1.sh`; raw numbers live in `results/metrics/`.
 
@@ -131,26 +213,28 @@ Recreate with `./run_phase1.sh`; raw numbers live in `results/metrics/`.
 
 | Metric | Value |
 |---|---|
-| EDR threshold (healthy mean + 3σ) | 1.75 nats/s |
-| Held-out healthy windows flagged | 0 / 10 |
+| EDR threshold (healthy mean + 3σ) | 1.20 nats/s |
+| Held-out healthy windows flagged | 2 / 10 |
 | Faulty windows flagged | 18 / 18 |
-| Segment-level ROC-AUC (fault vs healthy) | 1.000 |
-| Segment-level TPR / FPR | 1.000 / 0.029 |
+| Segment-level ROC-AUC (fault vs healthy) | 0.9998 |
+| Segment-level TPR / FPR | 0.988 / 0.000 |
 
-**Fault classification** (`results/metrics/comparison.csv`) — evaluated on record-level test set (1 238 segments, 16 classes):
+Healthy baseline: 132 segments fit, 66 calibration, 70 held out; 1,199 faulty segments
+evaluated. Mean EDR of the unseen Normal test class is 1.06 nats/s, below the
+threshold, while every fault class scores between 6.2 and 55.6 nats/s.
 
-| Label Budget | N Samples | SSL Frozen MLP F1 | SSL Frozen SVM F1 | SSL Fine-tuned F1 (Acc) | Supervised CNN F1 (Acc) |
+**Fault classification** (`results/metrics/comparison.csv`), accuracy (mean ± std), record-level test set, 16 classes:
+
+| Label budget | N labelled | SSL frozen MLP | SSL frozen SVM | SSL fine-tuned | Supervised CNN |
 |---|---|---|---|---|---|
-| 1 % | 32 | 0.689 | 0.698 | **0.751 (78.9%)** | 0.813 (84.0%) |
-| 5 % | 128 | 0.759 | 0.723 | **0.840 (85.9%)** | 0.843 (87.1%) |
-| 10 % | 256 | 0.770 | 0.778 | **0.846 (87.3%)** | 0.866 (88.2%) |
-| 20 % | 512 | 0.745 | 0.733 | **0.850 (87.4%)** | 0.870 (88.8%) |
-
-*With 5% labels (128 samples), fine-tuned SSL achieves 84.0% Macro F1 (85.9% Accuracy), reaching parity with the fully Supervised CNN (84.3% F1) within -0.3% F1.*
+| 1 % | 32 | 63.4 ± 8.8 % | 64.0 ± 1.7 % | 78.9 ± 1.3 % | 83.8 ± 2.6 % |
+| 5 % | 128 | 64.6 ± 3.3 % | 61.5 ± 0.7 % | 85.9 ± 1.0 % | 87.1 ± 1.0 % |
+| 10 % | 256 | 66.5 ± 0.6 % | 61.9 ± 1.3 % | 87.3 ± 0.3 % | 87.9 ± 0.3 % |
+| 20 % | 512 | 68.3 ± 2.0 % | 63.7 ± 1.3 % | 87.4 ± 0.3 % | 88.8 ± 1.5 % |
 
 **Figures** (`results/figures/`): class distribution, waveforms, spectra, preprocessing stages, augmented views, SSL loss curve, t-SNE, UMAP, EDR trend, EDR per class, label efficiency, confusion matrices, SSL-vs-baseline.
 
-## 8. EDR — what it is here
+## 9. EDR — what it is here
 
 For an embedding window `W` and the healthy reference `H`, both projected to 8 PCA
 components and modelled as regularised Gaussians:
@@ -167,21 +251,26 @@ Mahalanobis distance gives the dashboard a single-window score.
 This is **our approximation** of the paper's metric. The paper's exact derivation was
 not recoverable (below), so no equivalence is claimed.
 
-## 9. Dashboard
+## 10. Dashboard
+
+
+The main UI is the React app (section 5). The original Streamlit monitor still works:
 
 ```bash
 streamlit run dashboard/app.py
 ```
+
+Both call the same inference core, `core/analysis.py`.
 
 Pick a dataset recording or upload a `.mat`/`.npy` file; it shows status
 (NORMAL/ANOMALOUS), predicted fault + confidence, EDR vs threshold, the fraction of
 flagged segments, the waveform, the anomaly trend, the embedding map with the current
 signal marked, and class probabilities.
 
-`analyse_signal(signal, sampling_rate)` is the single Phase 2 hook: an MQTT/serial
-reader just calls it with a live buffer.
+`analyse_signal(signal, sampling_rate)` in `core/analysis.py` is the single Phase 2
+hook: an MQTT/serial reader just calls it with a live buffer.
 
-## 10. What we could not reproduce
+## 11. What we could not reproduce
 
 The PDF supplied to us was corrupt (no extractor or renderer recovered its body text),
 so only the public abstract-level description was available. Unavailable, therefore
@@ -193,7 +282,7 @@ designed by us and labelled as ours:
 * the in-house multistage-compressor dataset (not public — we use CWRU only);
 * the paper's exact train/test protocol, so its F1 ≈ 0.93 is not comparable to ours.
 
-## 11. Phase 2 (not implemented)
+## 12. Phase 2 (not implemented)
 
 ```
 Machine → accelerometer → ESP32 → Wi-Fi/MQTT → broker → inference service
@@ -201,9 +290,19 @@ Machine → accelerometer → ESP32 → Wi-Fi/MQTT → broker → inference serv
 ```
 
 The Phase 1 boundary is `analyse_signal()` plus `preprocessing/loader.py`: replace the
-file reader with a stream reader and the rest is unchanged.
+file reader with a stream reader and the rest is unchanged. The React `/live` page and
+the `LiveReading` TypeScript interface (`frontend/src/types/api.ts`) define the intended
+message contract; streaming (WebSocket) is not implemented yet.
 
-## 12. Repository layout
+**Known limits for real deployment:**
+
+* The encoder expects 12 kHz data. A sensor with lower bandwidth will not capture the
+  fault signatures, and upsampling cannot recover them.
+* The classifier knows only the 16 CWRU classes. On a new machine, the EDR anomaly
+  score (with a healthy baseline fitted on that machine) is the part expected to
+  transfer; fault labels are not validated outside CWRU.
+
+## 13. Repository layout
 
 ```
 config.py                 all hyperparameters + seeds + device selection
@@ -214,7 +313,12 @@ training/                 splits, datasets, train_ssl, extract_embeddings,
                           train_classifier, train_baseline
 anomaly_detection/        edr, anomaly_detector
 evaluation/               metrics, visualization, evaluate
+core/analysis.py          framework-free inference (raw signal -> verdict)
+api/main.py               FastAPI service
+frontend/                 React + TypeScript web app
 dashboard/app.py          Streamlit monitor
-results/                  figures, metrics, embeddings
+tests/                    pytest suite (pipeline, core, API)
+checkpoints/              trained encoder + health monitor (committed)
+results/                  figures, metrics, embeddings (from the canonical run)
 DESIGN.md                 architecture, roadmap, paper gaps
 ```
