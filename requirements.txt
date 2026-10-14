@@ -16,8 +16,11 @@ seaborn>=0.12
 # Non-linear dimensionality reduction (optional but recommended)
 umap-learn>=0.5.5
 
-# Dashboard
+# Dashboard & API
 streamlit>=1.33
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.9
 
 # Progress bars / utilities
 tqdm>=4.66

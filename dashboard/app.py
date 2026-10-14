@@ -42,115 +42,23 @@ if str(ROOT_DIR) not in sys.path:
 
 from typing import Dict, List, Optional, Tuple
 
-import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-import __main__
-from anomaly_detection.anomaly_detector import HealthMonitor
-__main__.HealthMonitor = HealthMonitor
-
-from config import CFG, CHECKPOINTS_DIR, DATA_RAW_DIR
-from evaluation.visualization import load_embeddings
-from models.classifier import build_classifier
+from config import CFG, DATA_RAW_DIR
+from core.analysis import (
+    analyse_signal,
+    get_classifier,
+    get_embeddings,
+    get_encoder,
+    get_map,
+    get_monitor,
+)
 from preprocessing.cwru_manifest import select_records
 from preprocessing.loader import load_signal
-from preprocessing.segmentation import preprocess_record
-from training.extract_embeddings import embed_segments, load_encoder
-
-MONITOR_PATH = CHECKPOINTS_DIR / "health_monitor.joblib"
 
 st.set_page_config(page_title="Machine Health Monitor", layout="wide")
-
-
-# --------------------------------------------------------------------------
-# Cached artefacts
-# --------------------------------------------------------------------------
-@st.cache_resource(show_spinner="Loading encoder ...")
-def get_encoder():
-    return load_encoder()
-
-
-@st.cache_resource(show_spinner="Loading health monitor ...")
-def get_monitor():
-    if not MONITOR_PATH.exists():
-        return None
-    return joblib.load(MONITOR_PATH)
-
-
-@st.cache_data(show_spinner="Loading embeddings ...")
-def get_embeddings() -> Dict[str, np.ndarray]:
-    return load_embeddings()
-
-
-@st.cache_resource(show_spinner="Fitting the downstream classifier ...")
-def get_classifier(clf_name: str):
-    d = load_embeddings()
-    tr = d["split"].astype(str) == "train"
-    clf = build_classifier(clf_name)
-    clf.fit(d["embeddings"][tr], d["labels"][tr])
-    return clf
-
-
-@st.cache_data(show_spinner="Projecting the embedding map ...")
-def get_map(max_points: int = 1500) -> Tuple[np.ndarray, np.ndarray, List[str], object]:
-    from sklearn.decomposition import PCA
-
-    d = load_embeddings()
-    emb, labels = d["embeddings"], d["labels"]
-    rng = np.random.default_rng(CFG.seed)
-    if len(emb) > max_points:
-        sel = rng.choice(len(emb), max_points, replace=False)
-        emb, labels = emb[sel], labels[sel]
-    # PCA rather than t-SNE: it is a *projection*, so a newly uploaded signal
-    # can be placed on the same axes without re-fitting the whole map.
-    pca = PCA(n_components=2, random_state=CFG.seed).fit(d["embeddings"])
-    return pca.transform(emb), labels, [str(c) for c in d["classes"]], pca
-
-
-# --------------------------------------------------------------------------
-# Core analysis -- the Phase 2 entry point
-# --------------------------------------------------------------------------
-def analyse_signal(signal: np.ndarray, sampling_rate: int) -> Optional[Dict[str, object]]:
-    """raw vibration -> preprocessing -> embeddings -> health + fault verdict."""
-    segments, _ = preprocess_record(signal, sampling_rate)
-    if len(segments) == 0:
-        return None
-
-    encoder = get_encoder()
-    emb = embed_segments(encoder, segments)
-
-    monitor = get_monitor()
-    clf = get_classifier(st.session_state.get("clf_name", "svm_rbf"))
-    classes = [str(c) for c in get_embeddings()["classes"]]
-
-    proba = clf.predict_proba(emb).mean(axis=0)     # average over the segments
-    pred_idx = int(np.argmax(proba))
-
-    out: Dict[str, object] = {
-        "n_segments": len(segments),
-        "embeddings": emb,
-        "predicted_class": classes[pred_idx],
-        "confidence": float(proba[pred_idx]),
-        "class_probabilities": dict(zip(classes, proba.tolist())),
-    }
-
-    if monitor is not None:
-        trend = monitor.edr.score_stream(emb, stride=max(1, CFG.edr.window_stride // 4))
-        seg_scores = monitor.segment_scores(emb)
-        out.update({
-            "edr_scores": trend.scores,
-            "edr_mean": float(trend.scores.mean()),
-            "edr_threshold": float(trend.threshold),
-            "anomalous": bool(trend.scores.mean() > trend.threshold),
-            "segment_scores": seg_scores,
-            "segment_threshold": float(monitor.mahalanobis_threshold),
-            "fraction_segments_flagged": float(
-                (seg_scores > monitor.mahalanobis_threshold).mean()
-            ),
-        })
-    return out
 
 
 # --------------------------------------------------------------------------
@@ -235,7 +143,8 @@ def main() -> None:
         header = f"Uploaded: {source.name}  |  {rate} Hz  |  {len(signal)} samples"
 
     st.caption(header)
-    result = analyse_signal(signal, rate)
+    clf_name = st.session_state.get("clf_name", "svm_rbf")
+    result = analyse_signal(signal, rate, clf_name=clf_name)
     if result is None:
         st.error("Signal too short to produce a single analysis window.")
         return

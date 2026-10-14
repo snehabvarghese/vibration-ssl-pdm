@@ -54,7 +54,7 @@ def download_record(record: CWRURecord, dest_dir: Path, retries: int = 3) -> Tup
             tmp.write_bytes(payload)
             tmp.replace(dest)
             return "ok", f"{record.filename} ({len(payload) / 1e6:.1f} MB)"
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        except (urllib.error.URLError, TimeoutError, OSError, Exception) as exc:
             last_err = str(exc)
             time.sleep(2 * attempt)
     return "failed", f"{record.filename}: {last_err}"

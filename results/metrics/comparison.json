@@ -4,23 +4,23 @@
       "method": "SSL + mlp",
       "label_fraction": 0.01,
       "n_labelled": 32,
-      "accuracy_mean": 0.7369413031771676,
-      "accuracy_std": 0.03665777582147016,
-      "precision_macro_mean": 0.7364705398732753,
-      "recall_macro_mean": 0.7359909188034187,
-      "f1_macro_mean": 0.6885851740586627,
-      "f1_macro_std": 0.05561497547978961
+      "accuracy_mean": 0.6340872374798061,
+      "accuracy_std": 0.08781396708945402,
+      "precision_macro_mean": 0.5338837550041889,
+      "recall_macro_mean": 0.6354100738396624,
+      "f1_macro_mean": 0.5640915381264009,
+      "f1_macro_std": 0.10373603146462242
     },
     {
       "method": "SSL + svm_rbf",
       "label_fraction": 0.01,
       "n_labelled": 32,
-      "accuracy_mean": 0.7355950457727518,
-      "accuracy_std": 0.030526516520840218,
-      "precision_macro_mean": 0.7160502505122421,
-      "recall_macro_mean": 0.7335871571729958,
-      "f1_macro_mean": 0.6981539176895452,
-      "f1_macro_std": 0.04857456472283297
+      "accuracy_mean": 0.6402800215401184,
+      "accuracy_std": 0.01676725630257435,
+      "precision_macro_mean": 0.5468339496330505,
+      "recall_macro_mean": 0.6268897746943632,
+      "f1_macro_mean": 0.5700745602294268,
+      "f1_macro_std": 0.01943243310733439
     },
     {
       "method": "SSL Fine-tuned",
@@ -37,34 +37,34 @@
       "method": "Supervised CNN (baseline)",
       "label_fraction": 0.01,
       "n_labelled": 32,
-      "accuracy_mean": 0.8395261173936457,
-      "accuracy_std": 0.025323957040446956,
-      "precision_macro_mean": 0.8393059509119251,
-      "recall_macro_mean": 0.8447916666666667,
-      "f1_macro_mean": 0.8127418600218292,
-      "f1_macro_std": 0.027256754740689844
+      "accuracy_mean": 0.83817985998923,
+      "accuracy_std": 0.02610212234442037,
+      "precision_macro_mean": 0.8395304975845738,
+      "recall_macro_mean": 0.8434895833333332,
+      "f1_macro_mean": 0.8095855191330457,
+      "f1_macro_std": 0.029657233159563538
     },
     {
       "method": "SSL + mlp",
       "label_fraction": 0.05,
       "n_labelled": 128,
-      "accuracy_mean": 0.7886375875067313,
-      "accuracy_std": 0.011804151974573502,
-      "precision_macro_mean": 0.7560106211667637,
-      "recall_macro_mean": 0.7955729166666666,
-      "f1_macro_mean": 0.7592653570745652,
-      "f1_macro_std": 0.0175411397778947
+      "accuracy_mean": 0.6456650511577814,
+      "accuracy_std": 0.03254046455635103,
+      "precision_macro_mean": 0.610866838649149,
+      "recall_macro_mean": 0.6572883702531646,
+      "f1_macro_mean": 0.5916655903137217,
+      "f1_macro_std": 0.026457256583802925
     },
     {
       "method": "SSL + svm_rbf",
       "label_fraction": 0.05,
       "n_labelled": 128,
-      "accuracy_mean": 0.7460958535271943,
-      "accuracy_std": 0.021687701201510288,
-      "precision_macro_mean": 0.7746698901968093,
-      "recall_macro_mean": 0.7544270833333333,
-      "f1_macro_mean": 0.7234236394058167,
-      "f1_macro_std": 0.025065666246657365
+      "accuracy_mean": 0.6147011308562198,
+      "accuracy_std": 0.006885682203847274,
+      "precision_macro_mean": 0.5225608433817447,
+      "recall_macro_mean": 0.5958600427350428,
+      "f1_macro_mean": 0.5431724671702867,
+      "f1_macro_std": 0.003992288031758119
     },
     {
       "method": "SSL Fine-tuned",
@@ -81,34 +81,34 @@
       "method": "Supervised CNN (baseline)",
       "label_fraction": 0.05,
       "n_labelled": 128,
-      "accuracy_mean": 0.8712977921378569,
-      "accuracy_std": 0.00858232495988652,
-      "precision_macro_mean": 0.8426585522740218,
+      "accuracy_mean": 0.8712977921378567,
+      "accuracy_std": 0.010435014741559556,
+      "precision_macro_mean": 0.8648392393922354,
       "recall_macro_mean": 0.8755208333333334,
-      "f1_macro_mean": 0.8426055827609948,
-      "f1_macro_std": 0.017746327085713484
+      "f1_macro_mean": 0.8444629288458536,
+      "f1_macro_std": 0.020377875282116584
     },
     {
       "method": "SSL + mlp",
       "label_fraction": 0.1,
       "n_labelled": 256,
-      "accuracy_mean": 0.7875605815831986,
-      "accuracy_std": 0.013467957997199572,
-      "precision_macro_mean": 0.7867098021631381,
-      "recall_macro_mean": 0.79453125,
-      "f1_macro_mean": 0.7696517990833597,
-      "f1_macro_std": 0.018774591354701213
+      "accuracy_mean": 0.6647819063004846,
+      "accuracy_std": 0.0063602648416896815,
+      "precision_macro_mean": 0.6184992453290462,
+      "recall_macro_mean": 0.67578125,
+      "f1_macro_mean": 0.6173648012761772,
+      "f1_macro_std": 0.01594266096424425
     },
     {
       "method": "SSL + svm_rbf",
       "label_fraction": 0.1,
       "n_labelled": 256,
-      "accuracy_mean": 0.7859450726978997,
-      "accuracy_std": 0.02162409585919364,
-      "precision_macro_mean": 0.8032627866254364,
-      "recall_macro_mean": 0.79296875,
-      "f1_macro_mean": 0.7778514558090871,
-      "f1_macro_std": 0.024837284800231577
+      "accuracy_mean": 0.6192784060312332,
+      "accuracy_std": 0.012794404276270035,
+      "precision_macro_mean": 0.5495296196883382,
+      "recall_macro_mean": 0.604667467948718,
+      "f1_macro_mean": 0.564430116553362,
+      "f1_macro_std": 0.016879994194010012
     },
     {
       "method": "SSL Fine-tuned",
@@ -125,34 +125,34 @@
       "method": "Supervised CNN (baseline)",
       "label_fraction": 0.1,
       "n_labelled": 256,
-      "accuracy_mean": 0.8815293484114163,
-      "accuracy_std": 0.0026654536716779007,
-      "precision_macro_mean": 0.8681968228173345,
-      "recall_macro_mean": 0.8854166666666666,
-      "f1_macro_mean": 0.8656854134713572,
-      "f1_macro_std": 0.007067248334038459
+      "accuracy_mean": 0.8788368336025848,
+      "accuracy_std": 0.0030223403770387553,
+      "precision_macro_mean": 0.8616138413469132,
+      "recall_macro_mean": 0.8828125,
+      "f1_macro_mean": 0.859836385063839,
+      "f1_macro_std": 0.009471849643649694
     },
     {
       "method": "SSL + mlp",
       "label_fraction": 0.2,
       "n_labelled": 512,
-      "accuracy_mean": 0.7697899838449112,
-      "accuracy_std": 0.013174076276494388,
-      "precision_macro_mean": 0.7557977702348365,
-      "recall_macro_mean": 0.77734375,
-      "f1_macro_mean": 0.7447964878456418,
-      "f1_macro_std": 0.015113659267154883
+      "accuracy_mean": 0.6828217555196554,
+      "accuracy_std": 0.019800512989607156,
+      "precision_macro_mean": 0.6411090138608292,
+      "recall_macro_mean": 0.6932291666666667,
+      "f1_macro_mean": 0.6351884670034879,
+      "f1_macro_std": 0.02852700559583772
     },
     {
       "method": "SSL + svm_rbf",
       "label_fraction": 0.2,
       "n_labelled": 512,
-      "accuracy_mean": 0.7463651050080774,
-      "accuracy_std": 0.014865022877589954,
-      "precision_macro_mean": 0.7829814384018065,
-      "recall_macro_mean": 0.7546874999999998,
-      "f1_macro_mean": 0.7334503303826286,
-      "f1_macro_std": 0.020551716777522926
+      "accuracy_mean": 0.6365105008077544,
+      "accuracy_std": 0.012873487439829757,
+      "precision_macro_mean": 0.545322486943237,
+      "recall_macro_mean": 0.6199619813642757,
+      "f1_macro_mean": 0.5648132156744736,
+      "f1_macro_std": 0.02188495686739927
     },
     {
       "method": "SSL Fine-tuned",
@@ -169,42 +169,42 @@
       "method": "Supervised CNN (baseline)",
       "label_fraction": 0.2,
       "n_labelled": 512,
-      "accuracy_mean": 0.8877221324717285,
-      "accuracy_std": 0.016114650519596128,
-      "precision_macro_mean": 0.8848575128730399,
-      "recall_macro_mean": 0.8914062500000001,
-      "f1_macro_mean": 0.8698837549916124,
-      "f1_macro_std": 0.025999550354829832
+      "accuracy_mean": 0.8879913839526118,
+      "accuracy_std": 0.015457943020363277,
+      "precision_macro_mean": 0.8857915590848986,
+      "recall_macro_mean": 0.8916666666666667,
+      "f1_macro_mean": 0.870719516596946,
+      "f1_macro_std": 0.024948426804940325
     }
   ],
   "ssl_vs_baseline": {
     "0.01": {
       "best_ssl_method": "SSL Fine-tuned",
       "ssl_f1_macro": 0.751424363047509,
-      "baseline_f1_macro": 0.8127418600218292,
-      "absolute_gain": -0.06131749697432021,
-      "relative_gain_pct": -7.5445230509811925
+      "baseline_f1_macro": 0.8095855191330457,
+      "absolute_gain": -0.058161156085536625,
+      "relative_gain_pct": -7.184065760936435
     },
     "0.05": {
       "best_ssl_method": "SSL Fine-tuned",
       "ssl_f1_macro": 0.8399444479795672,
-      "baseline_f1_macro": 0.8426055827609948,
-      "absolute_gain": -0.0026611347814275987,
-      "relative_gain_pct": -0.31582211604957167
+      "baseline_f1_macro": 0.8444629288458536,
+      "absolute_gain": -0.004518480866286367,
+      "relative_gain_pct": -0.5350715480739784
     },
     "0.1": {
       "best_ssl_method": "SSL Fine-tuned",
       "ssl_f1_macro": 0.8458959930118611,
-      "baseline_f1_macro": 0.8656854134713572,
-      "absolute_gain": -0.019789420459496054,
-      "relative_gain_pct": -2.2859828930397965
+      "baseline_f1_macro": 0.859836385063839,
+      "absolute_gain": -0.013940392051977835,
+      "relative_gain_pct": -1.6212842692092895
     },
     "0.2": {
       "best_ssl_method": "SSL Fine-tuned",
       "ssl_f1_macro": 0.8496831969505675,
-      "baseline_f1_macro": 0.8698837549916124,
-      "absolute_gain": -0.020200558041044925,
-      "relative_gain_pct": -2.3222135055550845
+      "baseline_f1_macro": 0.870719516596946,
+      "absolute_gain": -0.021036319646378532,
+      "relative_gain_pct": -2.415969694649235
     }
   },
   "note": "all values measured in this repository; the reference paper's F1 of 0.93 refers to different data and is not a target"
