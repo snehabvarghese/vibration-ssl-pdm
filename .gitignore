@@ -11,8 +11,11 @@ data/processed/*
 !data/processed/.gitkeep
 checkpoints/*
 !checkpoints/.gitkeep
+!checkpoints/ssl_encoder.pt
+!checkpoints/health_monitor.joblib
 results/embeddings/*
 !results/embeddings/.gitkeep
+!results/embeddings/embeddings.npz
 
 .DS_Store
 
