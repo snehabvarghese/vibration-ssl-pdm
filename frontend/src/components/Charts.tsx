@@ -219,7 +219,7 @@ export function ClassProbBar({ probabilities, trueLabel, topN = 8 }: ClassProbBa
         />
         <Tooltip
           contentStyle={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-          formatter={(value: number) => `${value}%`}
+          formatter={(value) => `${value}%`}
         />
         <Bar dataKey="probability" radius={[0, 4, 4, 0]} name="Confidence">
           {sorted.map((d, i) => (

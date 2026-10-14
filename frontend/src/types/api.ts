@@ -88,25 +88,16 @@ export interface HistoryEntry {
 }
 
 // --------------------------------------------------------------------------
-// Phase 2: Live monitoring types (interfaces only — no implementation)
+// Phase 2: Live monitoring types (Contract for Phase 2)
 // --------------------------------------------------------------------------
 
-/** A single real-time sensor reading that will arrive via MQTT / WebSocket. */
+/** Contract for Phase 2: streaming real-time sensor readings from sensors. */
 export interface LiveReading {
-  /** ISO-8601 timestamp from the sensor gateway */
+  machineId: string;
   timestamp: string;
-  /** Unique sensor / machine identifier */
-  sensor_id: string;
-  /** Sampling rate of the snippet in Hz */
-  sampling_rate: number;
-  /** Short waveform snippet (e.g. 0.25 s window) */
+  samplingRate: number;
   samples: number[];
-  /** EDR score computed on the edge or server */
-  edr_score?: number;
-  /** Whether this reading crossed the anomaly threshold */
-  anomalous?: boolean;
-  /** Predicted fault class, if classification ran */
-  predicted_class?: string;
-  /** Prediction confidence */
-  confidence?: number;
+  status?: string;
+  edr?: number;
 }
+

@@ -69,9 +69,7 @@ export default function AnalysePage() {
       <div className="bg-brand-500/5 border border-brand-500/15 rounded-lg px-4 py-3 flex items-start gap-2.5">
         <span className="text-brand-400 text-sm shrink-0 mt-0.5">ℹ️</span>
         <p className="text-xs text-gray-400 leading-relaxed">
-          <strong className="text-gray-300">Model trained on CWRU bearing data</strong> — results
-          on other machines or sensor configurations are not validated. Use with appropriate
-          engineering judgement.
+          <strong className="text-gray-300">Notice:</strong> Model trained on CWRU bearing data; results on other machines are not validated.
         </p>
       </div>
 
