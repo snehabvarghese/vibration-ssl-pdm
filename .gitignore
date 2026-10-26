@@ -25,3 +25,11 @@ results/embeddings/*
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Audio data and large artefacts (Step 1)
+data/audio/*
+!data/audio/.gitkeep
+checkpoints/audio/*
+!checkpoints/audio/.gitkeep
+results/audio/embeddings/*
+!results/audio/embeddings/.gitkeep
