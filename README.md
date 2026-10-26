@@ -307,18 +307,132 @@ message contract; streaming (WebSocket) is not implemented yet.
 ```
 config.py                 all hyperparameters + seeds + device selection
 preprocessing/            manifest, download, loader, filtering, segmentation,
-                          augmentation, build_dataset, explore, demo
-models/                   encoder, siamese (+NT-Xent), classifier, baseline_cnn
+                          augmentation, build_dataset, explore, demo,
+                          paderborn_loader, motor_features
+models/                   encoder, siamese (+NT-Xent), classifier, baseline_cnn,
+                          motor_temperature_model
 training/                 splits, datasets, train_ssl, extract_embeddings,
-                          train_classifier, train_baseline
+                          train_classifier, train_baseline, train_motor_models
 anomaly_detection/        edr, anomaly_detector
 evaluation/               metrics, visualization, evaluate
-core/analysis.py          framework-free inference (raw signal -> verdict)
+core/analysis.py          framework-free vibration inference
+core/motor_temperature.py framework-free motor current & temp inference
 api/main.py               FastAPI service
 frontend/                 React + TypeScript web app
 dashboard/app.py          Streamlit monitor
-tests/                    pytest suite (pipeline, core, API)
-checkpoints/              trained encoder + health monitor (committed)
-results/                  figures, metrics, embeddings (from the canonical run)
+tests/                    test_pipeline.py, test_api_and_core.py, test_motor_temperature.py
+checkpoints/              trained vibration & motor checkpoints
+results/                  metrics and comparison tables
 DESIGN.md                 architecture, roadmap, paper gaps
 ```
+
+---
+
+## 14. Motor-Current & Temperature Component (Phase 1)
+
+This module develops, evaluates, and packages the motor-current and temperature predictive maintenance subsystem for Phase 1. It operates independently from the vibration pipeline and teammate sound model, ready for final integration.
+
+### Dataset Verification & Preprocessing
+* **Benchmark Source**: [Paderborn University Bearing Dataset](https://mb.uni-paderborn.de/en/kat/research/bearing-datacenter/data-sets-and-download) (Chair of Design and Drive Technology - KAt).
+* **Sensor Modalities**:
+  * Motor Currents: Phase currents $I_u$ (`phase_current_1`) and $I_v$ (`phase_current_2`) recorded via LEM CKSR transducers at **64 kHz** (256,000 samples per 4-second recording).
+  * Temperature: Bearing module oil temperature (`temp_2_bearing_module`).
+* **Verified Physical Reality**: Lessmeier et al. (2016) experimentally kept oil temperature within a narrow thermostatically regulated band (**45–50 °C**) to eliminate lubricant viscosity drift. Over 4-second benchmark recordings, temperature is a quasi-constant operational context variable, not a high-frequency cyclic fault indicator. We therefore do not force contrastive self-supervised neural learning onto temperature data.
+* **Feature Extraction** (`preprocessing/motor_features.py`):
+  * **Time-domain**: RMS, peak, peak-to-peak, crest factor, kurtosis, skewness, shape factor, impulse factor, margin factor.
+  * **Spectral MCSA**: Fundamental electrical frequency tracking (~50 Hz), THD (2nd–5th harmonics), fault sideband energy ratio ($f_e \pm f_{fault}$), spectral centroid, spectral entropy.
+  * **Park's Vector Transform**: $i_\alpha, i_\beta$ modulus mean, standard deviation, peak-to-peak, and eccentricity.
+  * **Thermal State**: Mean temperature, min, max, range, linear drift slope (°C/s).
+
+### Experiments & Measured Baselines Comparison
+All models are evaluated on 1,169 held-out test segments from 240 real Paderborn recordings (3,599 total segments) across all motor operating conditions:
+
+| Model | Input Modality | Accuracy | Macro F1 | Macro Precision | Macro Recall | Anomaly ROC-AUC |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **Current-Only Baseline** | $I_u, I_v$ MCSA features | **98.80 %** | **0.9880** | **0.9884** | **0.9880** | **0.7907** |
+| **Temperature-Only Baseline** | Thermal state (°C) | **52.61 %** | **0.5300** | **0.5364** | **0.5261** | **0.5380** |
+| **Combined Model** | Early Feature Fusion | **98.97 %** | **0.9897** | **0.9901** | **0.9897** | **0.7686** |
+
+*Takeaway*: Across 240 real Paderborn University 64 kHz recordings, Motor Current Signature Analysis captures mechanical fault dynamics with **98.80% Accuracy**. Temperature under controlled laboratory conditions provides a baseline health check (52.61% accuracy, near-random chance for distinguishing localized micro-flaking) and serves as an operating context gate in the combined model, boosting overall accuracy to **98.97%**.
+
+### Team Integration Contract (`core/motor_temperature.py`)
+For the teammate responsible for the final application and API integration, calling the motor model requires a single Python import:
+
+```python
+from core.motor_temperature import analyse_motor_signal
+
+result = analyse_motor_signal(
+    current_phase1=current_u,          # 1-D numpy array (e.g. 64 kHz or resampled)
+    current_phase2=current_v,          # Optional 1-D array
+    temperature=47.5,                  # Optional Celsius float (defaults to 45.0)
+    sampling_rate=64_000,
+    model_mode="combined",             # "combined" | "current_only" | "temperature_only"
+    timestamp="2026-10-26T20:00:00Z",  # Source timestamp if present (never fabricated)
+)
+```
+
+**Returned Output Schema**:
+```json
+{
+  "model_name": "motor_combined_pdm",
+  "model_version": "1.0.0",
+  "status": "HEALTHY",
+  "predicted_condition": "Normal",
+  "anomaly_score": 0.0821,
+  "confidence": 0.9850,
+  "class_probabilities": {
+    "Inner_Race": 0.005,
+    "Normal": 0.985,
+    "Outer_Race": 0.010
+  },
+  "timestamp": "2026-10-26T20:00:00Z",
+  "features": { ... },
+  "input_diagnostics": {
+    "samples": 32000,
+    "duration_seconds": 0.5,
+    "sampling_rate_hz": 64000,
+    "two_phase_available": true,
+    "temperature_input_available": true
+  }
+}
+```
+
+### Web Application & Diagnostics UI
+A dedicated **Motor Current & Temperature PdM** page is integrated directly into the React frontend at `/motor`:
+* **Upload Custom Signals**: Drag & drop or browse `.mat`, `.npy`, or `.csv` current waveforms with thermal sensor parameters.
+* **Instant Benchmark Selection**: Dropdown across 240 local Paderborn recordings (`K001 Healthy`, `KA01 Outer Race`, `KI01 Inner Race`) with condition filters.
+* **Quick 1-Click Verification**: Quick-test buttons to immediately diagnose healthy and damaged bearing benchmarks.
+* **Live Visualizations**: Dual-trace stator current waveforms ($I_u, I_v$), MCSA power spectrum (0–1000 Hz), class probability distributions, and engineered MCSA feature table.
+* **Model Mode Toggles**: Live comparison between Combined (98.97%), Current-Only (98.80%), and Temperature-Only (52.61%).
+
+### Reproducible Commands
+* **Run Test Suite** (12 unit/integration tests including FastAPI endpoints):
+  ```bash
+  ./venv/bin/python tests/test_motor_temperature.py
+  ```
+* **Run FastAPI Backend Server**:
+  ```bash
+  ./venv/bin/uvicorn api.main:app --reload --port 8000
+  ```
+* **Run React Frontend Dev Server**:
+  ```bash
+  cd frontend && npm run dev
+  ```
+* **Build Frontend for Production**:
+  ```bash
+  cd frontend && npm run build
+  ```
+* **Train and Compare Baselines**:
+  ```bash
+  ./venv/bin/python training/train_motor_models.py --clf rf --seed 42
+  ```
+* **Multi-Value Stress Testing & Sweeps**:
+  ```bash
+  ./venv/bin/python evaluation/evaluate_motor.py --all
+  ```
+* **Download Real Paderborn Benchmark Archives** (subset of K001, KA01, KI01):
+  ```bash
+  ./venv/bin/python preprocessing/download_paderborn.py --subset
+  ```
+* Checkpoints: `checkpoints/motor_temp/` (`combined_model.joblib`, `current_only_model.joblib`, `temperature_only_model.joblib`).
+* Metrics & CSVs: `results/motor_temp/metrics.json` and `results/motor_temp/comparison.csv`.

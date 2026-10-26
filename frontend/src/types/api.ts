@@ -101,3 +101,75 @@ export interface LiveReading {
   edr?: number;
 }
 
+// --------------------------------------------------------------------------
+// Phase 1: Motor Current & Temperature PdM Types (Paderborn Benchmark)
+// --------------------------------------------------------------------------
+
+export interface MotorRecording {
+  filename: string;
+  bearing_id: string;
+  condition_label: string;
+  fault_type: string;
+  operating_condition: string;
+  speed_rpm: number;
+  load_torque_nm: number;
+  file_size_mb: number;
+}
+
+export interface MotorSpectrum {
+  freqs: number[];
+  magnitudes: number[];
+}
+
+export interface MotorAnalysisResult {
+  model_name: string;
+  model_version: string;
+  status: 'HEALTHY' | 'ANOMALOUS';
+  predicted_condition: 'Normal' | 'Outer_Race' | 'Inner_Race' | string;
+  anomaly_score: number;
+  confidence: number;
+  class_probabilities: Record<string, number>;
+  timestamp?: string | null;
+  features: {
+    rms_p1?: number;
+    rms_p2?: number;
+    peak_p1?: number;
+    peak_p2?: number;
+    crest_factor_p1?: number;
+    kurtosis_p1?: number;
+    skewness_p1?: number;
+    thd_p1?: number;
+    sideband_energy_ratio?: number;
+    spectral_centroid?: number;
+    spectral_entropy?: number;
+    park_modulus_mean?: number;
+    park_modulus_std?: number;
+    park_eccentricity?: number;
+    temp_mean?: number;
+    temp_std?: number;
+    temp_drift?: number;
+    [key: string]: number | undefined;
+  };
+  input_diagnostics: {
+    samples: number;
+    duration_seconds: number;
+    sampling_rate_hz: number;
+    two_phase_available: boolean;
+    temperature_input_available: boolean;
+    [key: string]: unknown;
+  };
+  waveform_p1?: number[];
+  waveform_p2?: number[];
+  spectrum?: MotorSpectrum;
+  metadata?: {
+    filename?: string;
+    bearing_id?: string;
+    true_label?: string;
+    operating_condition?: string;
+    speed_rpm?: number;
+    load_torque_nm?: number;
+    temperature_celsius?: number;
+    sampling_rate?: number;
+  };
+}
+

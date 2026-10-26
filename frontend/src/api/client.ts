@@ -10,6 +10,8 @@ import type {
   AnalysisResult,
   EmbeddingMapResponse,
   HealthResponse,
+  MotorAnalysisResult,
+  MotorRecording,
   Recording,
 } from '../types/api';
 
@@ -68,6 +70,48 @@ export async function analyseRecording(
 }
 
 // --------------------------------------------------------------------------
+// Motor Current & Temperature PdM (Paderborn Benchmark)
+// --------------------------------------------------------------------------
+export async function getMotorRecordings(): Promise<MotorRecording[]> {
+  const { data } = await api.get<MotorRecording[]>('/recordings/motor');
+  return data;
+}
+
+export async function analyseMotorFile(
+  file: File,
+  temperature?: number,
+  samplingRate: number = 64_000,
+  modelMode: string = 'combined',
+): Promise<MotorAnalysisResult> {
+  const form = new FormData();
+  form.append('file', file);
+  if (temperature !== undefined && !isNaN(temperature)) {
+    form.append('temperature', String(temperature));
+  }
+  form.append('sampling_rate', String(samplingRate));
+  form.append('model_mode', modelMode);
+
+  const { data } = await api.post<MotorAnalysisResult>('/analyse/motor', form);
+  return data;
+}
+
+export async function analyseMotorPreset(
+  filename: string,
+  temperature?: number,
+  modelMode: string = 'combined',
+): Promise<MotorAnalysisResult> {
+  const form = new FormData();
+  form.append('filename', filename);
+  if (temperature !== undefined && !isNaN(temperature)) {
+    form.append('temperature', String(temperature));
+  }
+  form.append('model_mode', modelMode);
+
+  const { data } = await api.post<MotorAnalysisResult>('/analyse/motor/recording', form);
+  return data;
+}
+
+// --------------------------------------------------------------------------
 // Embedding map
 // --------------------------------------------------------------------------
 export async function getEmbeddingMap(
@@ -80,3 +124,4 @@ export async function getEmbeddingMap(
 }
 
 export default api;
+

@@ -27,8 +27,10 @@ if str(ROOT_DIR) not in sys.path:
 
 from config import CFG, DATA_RAW_DIR, get_device
 from core.analysis import analyse_signal, get_map
+from core.motor_temperature import analyse_motor_signal
 from preprocessing.cwru_manifest import select_records
 from preprocessing.loader import _find_channel_key, _resample_to, load_signal
+from preprocessing.paderborn_loader import load_paderborn_mat, parse_paderborn_filename
 
 app = FastAPI(
     title="Vibration SSL PdM API",
@@ -358,4 +360,176 @@ def analyse_recording(
     result["load_hp"] = loaded.load_hp
     result["rpm"] = loaded.rpm
 
+    return _to_serializable(result)
+
+
+# --------------------------------------------------------------------------
+# Motor Current & Temperature PdM Endpoints
+# --------------------------------------------------------------------------
+@app.get("/recordings/motor")
+def list_motor_recordings() -> List[Dict[str, Any]]:
+    """List available Paderborn motor recordings on disk."""
+    paderborn_dir = ROOT_DIR / "data" / "paderborn"
+    if not paderborn_dir.exists():
+        return []
+    mat_files = sorted(list(paderborn_dir.rglob("*.mat")))
+    records = []
+    for p in mat_files:
+        meta = parse_paderborn_filename(p.name)
+        records.append({
+            "filename": p.name,
+            "bearing_id": meta["bearing_id"],
+            "condition_label": meta["condition_label"],
+            "fault_type": meta["fault_type"],
+            "operating_condition": meta["operating_condition"],
+            "speed_rpm": meta["speed_rpm"],
+            "load_torque_nm": meta["load_torque_nm"],
+            "file_size_mb": round(p.stat().st_size / 1e6, 2),
+        })
+    return records
+
+
+@app.post("/analyse/motor")
+async def analyse_motor_upload(
+    file: UploadFile = File(...),
+    temperature: Optional[float] = Form(None),
+    sampling_rate: int = Form(64_000),
+    model_mode: str = Form("combined"),
+) -> Dict[str, Any]:
+    """Analyse uploaded motor current and temperature file (.mat, .npy, .csv)."""
+    content = await file.read()
+    filename = file.filename or "motor_signal.mat"
+
+    p1: Optional[np.ndarray] = None
+    p2: Optional[np.ndarray] = None
+    temp_val = temperature
+    fs = sampling_rate
+
+    lower = filename.lower()
+    if lower.endswith(".mat"):
+        try:
+            rec = load_paderborn_mat(content, filename_hint=filename)
+            p1 = rec.phase_current_1
+            p2 = rec.phase_current_2
+            fs = rec.sampling_rate
+            if temp_val is None:
+                temp_val = rec.temperature_celsius
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Failed to parse MATLAB motor file: {exc}") from exc
+    elif lower.endswith(".npy"):
+        try:
+            arr = np.load(io.BytesIO(content))
+            if arr.ndim == 2:
+                if arr.shape[0] == 2:
+                    p1, p2 = arr[0], arr[1]
+                elif arr.shape[1] >= 2:
+                    p1, p2 = arr[:, 0], arr[:, 1]
+                else:
+                    p1 = arr.ravel()
+            else:
+                p1 = arr.ravel()
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Failed to parse numpy array: {exc}") from exc
+    elif lower.endswith(".csv"):
+        try:
+            df = pd.read_csv(io.BytesIO(content))
+            c_cols = [c for c in df.columns if "current" in c.lower() or "i_" in c.lower()]
+            if c_cols:
+                p1 = df[c_cols[0]].values.astype(np.float64)
+                if len(c_cols) > 1:
+                    p2 = df[c_cols[1]].values.astype(np.float64)
+            else:
+                p1 = df.iloc[:, 0].values.astype(np.float64)
+                if df.shape[1] > 1:
+                    p2 = df.iloc[:, 1].values.astype(np.float64)
+            t_cols = [c for c in df.columns if "temp" in c.lower()]
+            if t_cols and temp_val is None:
+                temp_val = float(df[t_cols[0]].mean())
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Failed to parse CSV file: {exc}") from exc
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported format. Upload .mat, .npy, or .csv")
+
+    if p1 is None or len(p1) == 0:
+        raise HTTPException(status_code=400, detail="Could not extract motor current signal from uploaded file.")
+
+    try:
+        result = analyse_motor_signal(
+            current_phase1=p1,
+            current_phase2=p2,
+            temperature=temp_val,
+            sampling_rate=fs,
+            model_mode=model_mode,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Motor analysis error: {exc}") from exc
+
+    step = max(1, len(p1) // 1500)
+    result["waveform_p1"] = p1[::step].tolist()
+    if p2 is not None:
+        result["waveform_p2"] = p2[::step].tolist()
+
+    n_fft = min(len(p1), fs)
+    fft_vals = np.abs(np.fft.rfft(p1[:n_fft])) / (n_fft / 2.0)
+    freqs = np.fft.rfftfreq(n_fft, d=1.0 / fs)
+    spec_mask = freqs <= 1000.0
+    s_step = max(1, int(np.sum(spec_mask) // 400))
+    result["spectrum"] = {
+        "freqs": freqs[spec_mask][::s_step].tolist(),
+        "magnitudes": fft_vals[spec_mask][::s_step].tolist(),
+    }
+    result["metadata"] = {
+        "filename": filename,
+        "temperature_celsius": temp_val if temp_val is not None else 45.0,
+        "sampling_rate": fs,
+    }
+    return _to_serializable(result)
+
+
+@app.post("/analyse/motor/recording")
+def analyse_motor_preset(
+    filename: str = Form(...),
+    temperature: Optional[float] = Form(None),
+    model_mode: str = Form("combined"),
+) -> Dict[str, Any]:
+    """Analyse a Paderborn benchmark recording stored locally on disk."""
+    paderborn_dir = ROOT_DIR / "data" / "paderborn"
+    matches = list(paderborn_dir.rglob(filename))
+    if not matches:
+        raise HTTPException(status_code=404, detail=f"Recording '{filename}' not found in data/paderborn.")
+
+    rec = load_paderborn_mat(matches[0])
+    temp = temperature if temperature is not None else rec.temperature_celsius
+
+    result = analyse_motor_signal(
+        current_phase1=rec.phase_current_1,
+        current_phase2=rec.phase_current_2,
+        temperature=temp,
+        sampling_rate=rec.sampling_rate,
+        model_mode=model_mode,
+    )
+
+    step = max(1, len(rec.phase_current_1) // 1500)
+    result["waveform_p1"] = rec.phase_current_1[::step].tolist()
+    if rec.phase_current_2 is not None:
+        result["waveform_p2"] = rec.phase_current_2[::step].tolist()
+
+    n_fft = min(len(rec.phase_current_1), rec.sampling_rate)
+    fft_vals = np.abs(np.fft.rfft(rec.phase_current_1[:n_fft])) / (n_fft / 2.0)
+    freqs = np.fft.rfftfreq(n_fft, d=1.0 / rec.sampling_rate)
+    spec_mask = freqs <= 1000.0
+    s_step = max(1, int(np.sum(spec_mask) // 400))
+    result["spectrum"] = {
+        "freqs": freqs[spec_mask][::s_step].tolist(),
+        "magnitudes": fft_vals[spec_mask][::s_step].tolist(),
+    }
+    result["metadata"] = {
+        "filename": rec.filename,
+        "bearing_id": rec.bearing_id,
+        "true_label": rec.condition_label,
+        "operating_condition": rec.operating_condition,
+        "speed_rpm": rec.speed_rpm,
+        "load_torque_nm": rec.load_torque_nm,
+        "temperature_celsius": temp,
+    }
     return _to_serializable(result)

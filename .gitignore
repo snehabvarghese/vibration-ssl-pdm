@@ -9,10 +9,13 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+data/paderborn/*
 checkpoints/*
 !checkpoints/.gitkeep
 !checkpoints/ssl_encoder.pt
 !checkpoints/health_monitor.joblib
+!checkpoints/motor_temp/
+!checkpoints/motor_temp/**
 results/embeddings/*
 !results/embeddings/.gitkeep
 !results/embeddings/embeddings.npz

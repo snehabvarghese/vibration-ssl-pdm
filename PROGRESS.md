@@ -82,9 +82,72 @@ Key Takeaway: With 5% labels (128 samples), fine-tuned SSL achieves **84.0% Macr
 ### STEP 13 — Documentation
 `README.md`, `PROGRESS.md`, and `DESIGN.md`.
 
-## Remaining
+## Motor-Current & Temperature Module (Phase 1 Component)
 
-All Phase 1 items and downstream optimization requested by the user are 100% complete!
+Status of the independent motor-current and temperature subsystem developed for Phase 1 of the multi-modal predictive maintenance project.
+
+### STEP M1 — Dataset Verification & Physical Reality Check
+* **Source**: Official Paderborn University Bearing Dataset (KAt Data Center).
+* **Sensor Modalities Verified**:
+  * Motor Phase Currents ($I_u, I_v$): Synchronous 64 kHz sampling (256,000 samples per 4-second recording). Rich in Motor Current Signature Analysis (MCSA) sidebands ($f_e \pm f_{fault}$) and Park's vector modulations.
+  * Temperature (`temp_2_bearing_module`): Oil temperature in bearing module.
+* **Verified Physical Reality**: Lessmeier et al. (2016) experimentally maintained lubricant oil temperature in a narrow regulated band (**45–50 °C**) to keep viscosity uniform. Over 4-second recordings, temperature is a slow environmental control variable with quasi-constant readings, not a high-frequency cyclic fault indicator.
+* **Methodology Decision**: We do not force contrastive self-supervised neural pretraining onto temperature data. We evaluate a Current-Only baseline, Temperature-Only baseline, and Combined Current+Temperature model (early feature fusion).
+
+### STEP M2 — Modular Preprocessing & Feature Extraction
+* `preprocessing/paderborn_loader.py` — robust loader for Paderborn `.mat` nested struct hierarchy (`Y` channel descriptors) and flat dictionaries; signal validation rejecting dead channels (< 1e-6 std) and > 1% NaNs; window segmentation.
+* `preprocessing/motor_features.py` — statistical time-domain features (RMS, peak, peak-to-peak, crest factor, kurtosis, skewness, shape factor, impulse factor, margin factor); spectral MCSA features (fundamental frequency, THD, sideband energy ratio, spectral centroid, spectral entropy); Park's Vector Transform ($i_\alpha, i_\beta$ modulus mean, std, eccentricity); thermal state features (mean, std, min, max, slope).
+
+### STEP M3 — Zero-Leakage Bearing Splitting
+* `split_by_bearing()`: Segments are grouped by physical bearing code (`K001`, `KA01`, `KI01`, etc.). Entire bearing runs are assigned strictly to train or test splits, ensuring zero leakage across overlapping windows.
+
+### STEP M4 — Model Training & Baselines Comparison
+* `models/motor_temperature_model.py`: Random Forest / Gradient Boosting / SVM-RBF classifiers + Isolation Forest anomaly detector. All transformations fitted exclusively on training data.
+* `training/train_motor_models.py`: Reproducible training script with command-line options (`--clf`, `--seed`, `--data-dir`).
+
+**Measured Baseline Comparison Results** (Evaluated on 1,169 held-out test segments from 240 real Paderborn 64 kHz recordings):
+
+| Model | Accuracy | Macro F1 | Macro Precision | Macro Recall | Anomaly ROC-AUC |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Current-Only Baseline** | **98.80 %** | **0.9880** | **0.9884** | **0.9880** | **0.7907** |
+| **Temperature-Only Baseline** | **52.61 %** | **0.5300** | **0.5364** | **0.5261** | **0.5380** |
+| **Combined (Current + Temp)** | **98.97 %** | **0.9897** | **0.9901** | **0.9897** | **0.7686** |
+
+*Key Empirical Finding*: Across 240 real physical recordings (3,599 segments of 64 kHz phase currents), Motor Current Signature Analysis (MCSA) achieves **98.80% Accuracy** and **0.9880 Macro F1** across Healthy, Inner Race, and Outer Race faults. Temperature under the 45–50 °C thermostatically regulated bench condition yields **52.61% Accuracy** (near random chance, F1 = 0.5300). The combined model integrates both, achieving **98.97% Accuracy** and **0.9897 Macro F1**.
+
+### STEP M5 — Standalone Inference Service & Integration Contract
+* `core/motor_temperature.py`: `analyse_motor_signal()` returning standardized schema:
+  `model_name`, `model_version`, `status`, `predicted_condition`, `anomaly_score`, `confidence`, `class_probabilities`, `timestamp`, `features`, and `input_diagnostics`.
+* Checkpoints saved: `checkpoints/motor_temp/current_only_model.joblib`, `checkpoints/motor_temp/temperature_only_model.joblib`, `checkpoints/motor_temp/combined_model.joblib`.
+* Metrics saved: `results/motor_temp/metrics.json`, `results/motor_temp/comparison.csv`.
+
+### STEP M6 — Automated Test Suite
+* `tests/test_motor_temperature.py`: 12 unit & integration tests covering feature extraction, .mat parsing, signal validation, bearing split leak checks, training reproducibility, API contract compliance, and FastAPI endpoints. All 12 tests pass cleanly (`ALL MOTOR & TEMPERATURE SUBSYSTEM TESTS PASSED!`).
+
+### STEP M7 — Interactive React Diagnostics Page & Full-Stack Integration
+* **Dedicated React Diagnostics Page** (`frontend/src/pages/MotorPage.tsx` at `/motor`):
+  * **Interactive Upload Zone**: Drag-and-drop or browse `.mat`, `.npy`, or `.csv` files.
+  * **Paderborn Benchmark Catalogue**: Instant dropdown selector across 240 local real `.mat` files (`K001`, `KA01`, `KI01`) with filters and operating condition previews.
+  * **One-Click Quick Verify**: Instant 1-click test buttons for `K001 Healthy`, `KA01 Outer Race`, and `KI01 Inner Race`.
+  * **Model Mode Toggles**: Direct toggle between `Combined (98.97%)`, `Current Only (98.80%)`, and `Temp Only (52.61%)`.
+  * **Thermal Sensor Parameter Sweeps**: Adjustable temperature override (°C) to test normal (45°C) vs elevated (75°C) vs overheating (90°C) conditions.
+  * **Visual Diagnostics Verdict**:
+    * Diagnostic status badge (`HEALTHY` vs `ANOMALOUS`), condition pill, confidence meter, and anomaly score.
+    * Ground truth verification badge comparing predicted condition against benchmark ground truth with match confirmation.
+    * Class probability distribution progress bars for `Normal`, `Outer_Race`, and `Inner_Race`.
+  * **Real-Time Signal Visualizations**:
+    * Dual-phase stator current waveforms ($I_u, I_v$) in Amperes over milliseconds.
+    * MCSA FFT power spectrum (0–1000 Hz) highlighting fundamental supply peak (~50 Hz) and fault modulation sidebands.
+  * **Engineered Feature Inspection**: Live feature breakdown for RMS Current, Crest Factor, Kurtosis, THD %, Sideband Ratio, Park's Modulus, and temperature metrics.
+* **FastAPI Backend Integration** (`api/main.py`):
+  * `GET /recordings/motor`: Returns catalogue of Paderborn benchmark files with metadata.
+  * `POST /analyse/motor`: Handles file uploads (`.mat`, `.npy`, `.csv`) with customizable sampling rate, temperature override, and model mode.
+  * `POST /analyse/motor/recording`: Analyses benchmark files stored locally on disk.
+* **Frontend Navigation & Routing**:
+  * Updated `frontend/src/components/Sidebar.tsx` with `⚡ Motor & Temp` navigation link.
+  * Updated `frontend/src/App.tsx` with `/motor` route.
+  * Updated `frontend/src/api/client.ts` and `frontend/src/types/api.ts` with fully typed motor PdM contracts.
+  * Validated with zero TypeScript / oxlint warnings (`npm run build` passes in 159ms).
 
 ## Honest caveats
 
@@ -92,4 +155,6 @@ All Phase 1 items and downstream optimization requested by the user are 100% com
 * The supplied PDF was corrupt, so the exact EDR maths, architecture hyperparameters, augmentation probabilities and training protocol of the paper were unavailable. Everything of that kind here is our own design.
 * The paper's F1 ≈ 0.93 is on different data and is not a target or a baseline.
 * CWRU has no run-to-failure data, so the "degradation timeline" is constructed (healthy segments followed by faulty ones) and is illustrative.
+* In Paderborn data, temperature was controlled at 45–50 °C during bench tests; temperature signals reflect thermal operational state, not high-frequency mechanical impact signatures.
+
 

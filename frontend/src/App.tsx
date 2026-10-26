@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AnalysePage from './pages/AnalysePage';
 import HistoryPage from './pages/HistoryPage';
 import LivePage from './pages/LivePage';
+import MotorPage from './pages/MotorPage';
 import { Card } from './components/ui';
 
 function NotFoundPage() {
@@ -34,6 +35,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Navigate to="/analyse" replace />} />
             <Route path="/analyse" element={<AnalysePage />} />
+            <Route path="/motor" element={<MotorPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/live" element={<LivePage />} />
             <Route path="*" element={<NotFoundPage />} />
@@ -43,3 +45,4 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
