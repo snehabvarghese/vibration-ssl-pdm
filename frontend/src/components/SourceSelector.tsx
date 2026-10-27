@@ -40,17 +40,27 @@ export default function SourceSelector({ onSourceReady, disabled }: SourceSelect
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loadingRec, setLoadingRec] = useState(false);
   const [selectedRecId, setSelectedRecId] = useState('');
+  const [recError, setRecError] = useState<string | null>(null);
+
+  const fetchRecordings = () => {
+    setLoadingRec(true);
+    setRecError(null);
+    getRecordings()
+      .then((data) => {
+        setRecordings(data);
+      })
+      .catch((err) => {
+        setRecError(err?.message || 'Failed to connect to backend server');
+      })
+      .finally(() => setLoadingRec(false));
+  };
 
   // Load recordings on first switch to recording mode
   useEffect(() => {
-    if (mode === 'recording' && recordings.length === 0) {
-      setLoadingRec(true);
-      getRecordings()
-        .then(setRecordings)
-        .catch(() => {})
-        .finally(() => setLoadingRec(false));
+    if (mode === 'recording' && recordings.length === 0 && !recError) {
+      fetchRecordings();
     }
-  }, [mode, recordings.length]);
+  }, [mode, recordings.length, recError]);
 
   // Auto-select first recording when loaded
   useEffect(() => {
@@ -180,6 +190,17 @@ export default function SourceSelector({ onSourceReady, disabled }: SourceSelect
           {loadingRec ? (
             <div className="flex items-center gap-2 py-4 justify-center text-gray-500 text-sm">
               <Spinner size="sm" /> Loading recordings…
+            </div>
+          ) : recError ? (
+            <div className="text-center py-3">
+              <p className="text-xs text-rose-400 mb-2">Failed to load recordings: {recError}</p>
+              <button
+                type="button"
+                onClick={fetchRecordings}
+                className="text-xs text-brand-400 hover:underline cursor-pointer"
+              >
+                Retry
+              </button>
             </div>
           ) : recordings.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-4">

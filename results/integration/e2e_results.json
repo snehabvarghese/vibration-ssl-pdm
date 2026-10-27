@@ -1,0 +1,843 @@
+{
+  "generated_at": "2026-10-27T15:21:10.827223+00:00",
+  "disclaimer": "All end-to-end data is replayed from held-out recorded benchmark datasets (CWRU, MIMII DG, Paderborn). No live sensors were used in Phase 1.",
+  "scenarios": {
+    "healthy_baseline": {
+      "id": "healthy_baseline",
+      "name": "Healthy Baseline",
+      "description": "Continuous nominal operation across all three sensor modalities.",
+      "total_steps": 60,
+      "status_counts": {
+        "NORMAL": 18,
+        "WARNING": 42,
+        "ALARM": 0,
+        "UNAVAILABLE": 0
+      },
+      "first_warning_step": 5,
+      "first_alarm_step": null,
+      "is_replay": true
+    },
+    "vibration_fault_onset": {
+      "id": "vibration_fault_onset",
+      "name": "Vibration Fault Onset",
+      "description": "Nominal baseline (0-19s), early mechanical impact onset (20-39s), outer race defect (40-60s).",
+      "total_steps": 60,
+      "status_counts": {
+        "NORMAL": 7,
+        "WARNING": 13,
+        "ALARM": 40,
+        "UNAVAILABLE": 0
+      },
+      "first_warning_step": 5,
+      "first_alarm_step": 21,
+      "is_replay": true
+    },
+    "audio_fault_onset": {
+      "id": "audio_fault_onset",
+      "name": "Acoustic Anomaly Onset",
+      "description": "Nominal acoustic operation (0-19s) followed by progressive high-frequency acoustic hiss/rumble.",
+      "total_steps": 60,
+      "status_counts": {
+        "NORMAL": 7,
+        "WARNING": 53,
+        "ALARM": 0,
+        "UNAVAILABLE": 0
+      },
+      "first_warning_step": 5,
+      "first_alarm_step": null,
+      "is_replay": true
+    },
+    "motor_fault_onset": {
+      "id": "motor_fault_onset",
+      "name": "Motor Electrical & Thermal Fault",
+      "description": "Balanced stator current (0-19s) with subsequent phase unbalance and thermal rise (20-60s).",
+      "total_steps": 60,
+      "status_counts": {
+        "NORMAL": 7,
+        "WARNING": 53,
+        "ALARM": 0,
+        "UNAVAILABLE": 0
+      },
+      "first_warning_step": 5,
+      "first_alarm_step": null,
+      "is_replay": true
+    },
+    "multi_fault_escalation": {
+      "id": "multi_fault_escalation",
+      "name": "Multi-Fault Cascading Breakdown",
+      "description": "Healthy (0-14s) -> Motor thermal warning (15-29s) -> Acoustic anomaly (30-44s) -> Bearing failure (45-60s).",
+      "total_steps": 60,
+      "status_counts": {
+        "NORMAL": 5,
+        "WARNING": 25,
+        "ALARM": 30,
+        "UNAVAILABLE": 0
+      },
+      "first_warning_step": 5,
+      "first_alarm_step": 31,
+      "is_replay": true
+    }
+  },
+  "latency_benchmarks": {
+    "GET /models": {
+      "median_ms": 12.32,
+      "p95_ms": 15.29,
+      "mean_ms": 12.69,
+      "min_ms": 10.37,
+      "max_ms": 15.76,
+      "n_samples": 25
+    },
+    "GET /replay/scenarios": {
+      "median_ms": 4.17,
+      "p95_ms": 5.29,
+      "mean_ms": 4.37,
+      "min_ms": 3.74,
+      "max_ms": 6.14,
+      "n_samples": 25
+    },
+    "POST /predict/vibration/sample/97": {
+      "median_ms": 31.46,
+      "p95_ms": 37.67,
+      "mean_ms": 32.22,
+      "min_ms": 27.25,
+      "max_ms": 38.76,
+      "n_samples": 25
+    },
+    "POST /predict/audio/sample/fan_section_00_source_test_anomaly_0000_m-n_W": {
+      "median_ms": 66.56,
+      "p95_ms": 106.5,
+      "mean_ms": 71.61,
+      "min_ms": 56.61,
+      "max_ms": 170.61,
+      "n_samples": 25
+    },
+    "POST /predict/motor/sample/paderborn_demo_normal": {
+      "median_ms": 44.42,
+      "p95_ms": 59.62,
+      "mean_ms": 46.66,
+      "min_ms": 40.31,
+      "max_ms": 62.27,
+      "n_samples": 25
+    },
+    "POST /fusion": {
+      "median_ms": 6.41,
+      "p95_ms": 9.57,
+      "mean_ms": 6.87,
+      "min_ms": 4.39,
+      "max_ms": 10.46,
+      "n_samples": 25
+    }
+  },
+  "scenarios_trajectory_sample": {
+    "healthy_baseline": [
+      {
+        "step": 1,
+        "timestamp": "2026-10-27T14:39:55.601696+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 2,
+        "timestamp": "2026-10-27T14:39:56.601696+00:00",
+        "fused_score": 0.7875,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7875,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      },
+      {
+        "step": 3,
+        "timestamp": "2026-10-27T14:39:57.601696+00:00",
+        "fused_score": 0.7371,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.74 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7371,
+        "motor_ratio": 0.0804,
+        "is_replay": true
+      },
+      {
+        "step": 4,
+        "timestamp": "2026-10-27T14:39:58.601696+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.0858,
+        "is_replay": true
+      },
+      {
+        "step": 5,
+        "timestamp": "2026-10-27T14:39:59.601696+00:00",
+        "fused_score": 0.934,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.93 driven by audio.",
+          "WARNING triggered: fused ratio 0.93 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.934,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 6,
+        "timestamp": "2026-10-27T14:40:00.601696+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.4888,
+        "is_replay": true
+      },
+      {
+        "step": 7,
+        "timestamp": "2026-10-27T14:40:01.601696+00:00",
+        "fused_score": 0.9885,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.99 driven by audio.",
+          "WARNING triggered: fused ratio 0.99 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9885,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 8,
+        "timestamp": "2026-10-27T14:40:02.601696+00:00",
+        "fused_score": 0.8055,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.81 driven by audio.",
+          "WARNING triggered: fused ratio 0.81 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8055,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 9,
+        "timestamp": "2026-10-27T14:40:03.601696+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 10,
+        "timestamp": "2026-10-27T14:40:04.601696+00:00",
+        "fused_score": 0.8425,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.84 driven by audio.",
+          "WARNING triggered: fused ratio 0.84 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8425,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      }
+    ],
+    "vibration_fault_onset": [
+      {
+        "step": 1,
+        "timestamp": "2026-10-27T14:39:58.048707+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 2,
+        "timestamp": "2026-10-27T14:39:59.048707+00:00",
+        "fused_score": 0.7875,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7875,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      },
+      {
+        "step": 3,
+        "timestamp": "2026-10-27T14:40:00.048707+00:00",
+        "fused_score": 0.7371,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.74 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7371,
+        "motor_ratio": 0.0804,
+        "is_replay": true
+      },
+      {
+        "step": 4,
+        "timestamp": "2026-10-27T14:40:01.048707+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.0858,
+        "is_replay": true
+      },
+      {
+        "step": 5,
+        "timestamp": "2026-10-27T14:40:02.048707+00:00",
+        "fused_score": 0.934,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.93 driven by audio.",
+          "WARNING triggered: fused ratio 0.93 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.934,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 6,
+        "timestamp": "2026-10-27T14:40:03.048707+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.4888,
+        "is_replay": true
+      },
+      {
+        "step": 7,
+        "timestamp": "2026-10-27T14:40:04.048707+00:00",
+        "fused_score": 0.9885,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.99 driven by audio.",
+          "WARNING triggered: fused ratio 0.99 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9885,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 8,
+        "timestamp": "2026-10-27T14:40:05.048707+00:00",
+        "fused_score": 0.8055,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.81 driven by audio.",
+          "WARNING triggered: fused ratio 0.81 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8055,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 9,
+        "timestamp": "2026-10-27T14:40:06.048707+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 10,
+        "timestamp": "2026-10-27T14:40:07.048707+00:00",
+        "fused_score": 0.8425,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.84 driven by audio.",
+          "WARNING triggered: fused ratio 0.84 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8425,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      }
+    ],
+    "audio_fault_onset": [
+      {
+        "step": 1,
+        "timestamp": "2026-10-27T14:40:00.468373+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 2,
+        "timestamp": "2026-10-27T14:40:01.468373+00:00",
+        "fused_score": 0.7875,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7875,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      },
+      {
+        "step": 3,
+        "timestamp": "2026-10-27T14:40:02.468373+00:00",
+        "fused_score": 0.7371,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.74 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7371,
+        "motor_ratio": 0.0804,
+        "is_replay": true
+      },
+      {
+        "step": 4,
+        "timestamp": "2026-10-27T14:40:03.468373+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.0858,
+        "is_replay": true
+      },
+      {
+        "step": 5,
+        "timestamp": "2026-10-27T14:40:04.468373+00:00",
+        "fused_score": 0.934,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.93 driven by audio.",
+          "WARNING triggered: fused ratio 0.93 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.934,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 6,
+        "timestamp": "2026-10-27T14:40:05.468373+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.4888,
+        "is_replay": true
+      },
+      {
+        "step": 7,
+        "timestamp": "2026-10-27T14:40:06.468373+00:00",
+        "fused_score": 0.9885,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.99 driven by audio.",
+          "WARNING triggered: fused ratio 0.99 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9885,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 8,
+        "timestamp": "2026-10-27T14:40:07.468373+00:00",
+        "fused_score": 0.8055,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.81 driven by audio.",
+          "WARNING triggered: fused ratio 0.81 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8055,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 9,
+        "timestamp": "2026-10-27T14:40:08.468373+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 10,
+        "timestamp": "2026-10-27T14:40:09.468373+00:00",
+        "fused_score": 0.8425,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.84 driven by audio.",
+          "WARNING triggered: fused ratio 0.84 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8425,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      }
+    ],
+    "motor_fault_onset": [
+      {
+        "step": 1,
+        "timestamp": "2026-10-27T14:40:02.995632+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 2,
+        "timestamp": "2026-10-27T14:40:03.995632+00:00",
+        "fused_score": 0.7875,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7875,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      },
+      {
+        "step": 3,
+        "timestamp": "2026-10-27T14:40:04.995632+00:00",
+        "fused_score": 0.7371,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.74 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7371,
+        "motor_ratio": 0.0804,
+        "is_replay": true
+      },
+      {
+        "step": 4,
+        "timestamp": "2026-10-27T14:40:05.995632+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.0858,
+        "is_replay": true
+      },
+      {
+        "step": 5,
+        "timestamp": "2026-10-27T14:40:06.995632+00:00",
+        "fused_score": 0.934,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.93 driven by audio.",
+          "WARNING triggered: fused ratio 0.93 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.934,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 6,
+        "timestamp": "2026-10-27T14:40:07.995632+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.4888,
+        "is_replay": true
+      },
+      {
+        "step": 7,
+        "timestamp": "2026-10-27T14:40:08.995632+00:00",
+        "fused_score": 0.9885,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.99 driven by audio.",
+          "WARNING triggered: fused ratio 0.99 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9885,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 8,
+        "timestamp": "2026-10-27T14:40:09.995632+00:00",
+        "fused_score": 0.8055,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.81 driven by audio.",
+          "WARNING triggered: fused ratio 0.81 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8055,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 9,
+        "timestamp": "2026-10-27T14:40:10.995632+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 10,
+        "timestamp": "2026-10-27T14:40:11.995632+00:00",
+        "fused_score": 0.8425,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.84 driven by audio.",
+          "WARNING triggered: fused ratio 0.84 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8425,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      }
+    ],
+    "multi_fault_escalation": [
+      {
+        "step": 1,
+        "timestamp": "2026-10-27T14:40:05.490142+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 2,
+        "timestamp": "2026-10-27T14:40:06.490142+00:00",
+        "fused_score": 0.7875,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7875,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      },
+      {
+        "step": 3,
+        "timestamp": "2026-10-27T14:40:07.490142+00:00",
+        "fused_score": 0.7371,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.74 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7371,
+        "motor_ratio": 0.0804,
+        "is_replay": true
+      },
+      {
+        "step": 4,
+        "timestamp": "2026-10-27T14:40:08.490142+00:00",
+        "fused_score": 0.7889,
+        "fused_status": "NORMAL",
+        "reasons": [
+          "Max ratio 0.79 driven by audio.",
+          "NORMAL: All active sensor ratios below warning threshold (0.8)."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.7889,
+        "motor_ratio": 0.0858,
+        "is_replay": true
+      },
+      {
+        "step": 5,
+        "timestamp": "2026-10-27T14:40:09.490142+00:00",
+        "fused_score": 0.934,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.93 driven by audio.",
+          "WARNING triggered: fused ratio 0.93 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.934,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 6,
+        "timestamp": "2026-10-27T14:40:10.490142+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.4888,
+        "is_replay": true
+      },
+      {
+        "step": 7,
+        "timestamp": "2026-10-27T14:40:11.490142+00:00",
+        "fused_score": 0.9885,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.99 driven by audio.",
+          "WARNING triggered: fused ratio 0.99 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9885,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 8,
+        "timestamp": "2026-10-27T14:40:12.490142+00:00",
+        "fused_score": 0.8055,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.81 driven by audio.",
+          "WARNING triggered: fused ratio 0.81 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8055,
+        "motor_ratio": 0.277,
+        "is_replay": true
+      },
+      {
+        "step": 9,
+        "timestamp": "2026-10-27T14:40:13.490142+00:00",
+        "fused_score": 0.9156,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.92 driven by audio.",
+          "WARNING triggered: fused ratio 0.92 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.9156,
+        "motor_ratio": 0.294,
+        "is_replay": true
+      },
+      {
+        "step": 10,
+        "timestamp": "2026-10-27T14:40:14.490142+00:00",
+        "fused_score": 0.8425,
+        "fused_status": "WARNING",
+        "reasons": [
+          "Max ratio 0.84 driven by audio.",
+          "WARNING triggered: fused ratio 0.84 >= 0.8."
+        ],
+        "vibration_ratio": 0.15,
+        "audio_ratio": 0.8425,
+        "motor_ratio": 0.0598,
+        "is_replay": true
+      }
+    ]
+  }
+}

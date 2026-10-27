@@ -138,24 +138,40 @@ npm install        # first time only
 npm run dev
 ```
 
-Open http://localhost:5173. If the backend runs on another port, set
+Open http://localhost:5173 (default route directs to `/dashboard`). If the backend runs on another port, set
 `VITE_API_URL` in `frontend/.env`.
 
-| Endpoint | Purpose |
-|---|---|
-| `GET /health` | service and model status |
-| `POST /analyse` | upload `.mat` / `.npy` / `.csv` + sampling rate → verdict, waveform, EDR trend, embedding points |
-| `GET /recordings` | CWRU recordings available in `data/raw/` |
-| `POST /analyse/recording/{file_id}` | analyse a dataset recording |
-| `GET /map` | background embedding map (PCA) |
+### Unified API Endpoints
 
-| Page | Purpose |
-|---|---|
-| `/analyse` | pick a dataset recording or upload a file; status, predicted fault, EDR, charts |
-| `/history` | analyses from this browser session (stored in localStorage) |
-| `/live` | Phase 2 placeholder (no streaming yet) |
+| Endpoint | Method | Input | Purpose / Response |
+|---|:---:|---|---|
+| `/models` | `GET` | None | Lists registered vibration, audio, and motor models, thresholds, and availability |
+| `/replay/scenarios` | `GET` | None | Catalogue of 60-second replay scenarios (`healthy_baseline`, `multi_fault_escalation`, etc.) |
+| `/predict/vibration` | `POST` | File (`.mat`, `.npy`, `.csv`), `sampling_rate` | Vibration SSL inference, EDR anomaly score, fault classification, and waveform |
+| `/predict/vibration/sample/{id}` | `POST` | `sample_id` | CWRU held-out benchmark inference (`is_replay=true`) |
+| `/predict/audio` | `POST` | File (`.wav`), `machine_type` (`fan`/`bearing`) | Acoustic autoencoder reconstruction error, score ratio, and frame errors |
+| `/predict/audio/sample/{id}` | `POST` | `sample_id` | MIMII DG held-out benchmark inference (`is_replay=true`) |
+| `/predict/motor` | `POST` | File (`.csv`/`.mat`), `temperature` | MCSA stator current signature and thermal predictive maintenance diagnosis |
+| `/predict/motor/sample/{id}` | `POST` | `sample_id` | Paderborn benchmark motor inference (`is_replay=true`) |
+| `/fusion` | `POST` | `results` list or `sample_ids` dict, `method` | Multimodal late fusion verdict (`NORMAL`/`WARNING`/`ALARM`), reasons, confidence |
+| `/ws/replay/{scenario_id}` | `WebSocket` | JSON commands: `pause`, `resume`, `stop`, `set_speed` | 60-second streaming telemetry replay with synchronized multi-sensor readings |
+| `/health` | `GET` | None | Backend service, torch device, and vibration model loaded health check |
+| `/recordings` | `GET` | None | Local CWRU raw recordings catalog |
+| `/map` | `GET` | `max_points` | Background 2D PCA embedding projection points |
 
-Run the tests with `pytest -q`.
+### Frontend Application Pages
+
+| Route | Page | Purpose / Features |
+|---|---|---|
+| `/dashboard` | **Multimodal Dashboard** | Primary dashboard: fused status pill (NORMAL green, WARNING amber, ALARM red), fused score, 3 individual model cards with score vs. threshold bars and threshold tick marks, live Recharts score ratio trend, warnings log, persistent unhideable replay banner |
+| `/live` | **Live Stream & Replay** | Reuses the multimodal dashboard for continuous telemetry monitoring and replay playback |
+| `/analyse` | **Diagnostic Hub** | Multi-tab analysis: Vibration (CWRU source selector, waveform, EDR, PCA map), Sound (.wav upload or demo clip), Motor (.csv/.mat upload or demo preset), and "Analyse with all models" consensus fusion |
+| `/motor` | **Motor Current & Temp** | Dedicated MCSA stator current waveforms, dual-phase spectrum (0–1000 Hz), and Park's vector transform |
+| `/history` | **Analysis History** | Session analysis log stored in localStorage with modality badges (`VIBRATION`, `SOUND`, `MOTOR`, `FUSION`) and `REPLAY` tags |
+| `*` | **404 Not Found** | Error page with navigation link back to `/dashboard` |
+
+Run the tests with `pytest -v`.
+
 
 ## 6. Running the pipeline
 
@@ -291,16 +307,16 @@ Machine → accelerometer → ESP32 → Wi-Fi/MQTT → broker → inference serv
 
 The Phase 1 boundary is `analyse_signal()` plus `preprocessing/loader.py`: replace the
 file reader with a stream reader and the rest is unchanged. The React `/live` page and
-the `LiveReading` TypeScript interface (`frontend/src/types/api.ts`) define the intended
-message contract; streaming (WebSocket) is not implemented yet.
+the `useReplay` hook (`frontend/src/hooks/useReplay.ts`) implement real-time WebSocket
+streaming over `/ws/replay/{scenario_id}`.
 
-**Known limits for real deployment:**
+### Phase 2 Hardware Specifications & Deployment Constraints
 
-* The encoder expects 12 kHz data. A sensor with lower bandwidth will not capture the
-  fault signatures, and upsampling cannot recover them.
-* The classifier knows only the 16 CWRU classes. On a new machine, the EDR anomaly
-  score (with a healthy baseline fitted on that machine) is the part expected to
-  transfer; fault labels are not validated outside CWRU.
+* **Vibration Sensor Bandwidth (12 kHz)**: The contrastive 1D-CNN encoder and EDR monitor strictly expect 12 kHz sampled acceleration data (Butterworth bandpassed at 10–5000 Hz). Piezoelectric industrial accelerometers or high-speed IEPE sensors interfaced to ADC/microcontroller sampling at $\ge 12\text{ kHz}$ are mandatory; low-rate IMUs cannot capture high-frequency bearing impact pulses, and numerical upsampling cannot reconstruct missing spectral components.
+* **Acoustic Sensor Bandwidth (16 kHz)**: The acoustic autoencoder operates on 16 kHz mono audio (.wav) with 128 log-Mel bins. Microphones must provide $\ge 16\text{ kHz}$ flat response; lower sampling rates fail to capture anomalous friction hiss and aerodynamic blade pass harmonics.
+* **Motor Current Sensor Bandwidth (64 kHz)**: LEM CKSR current transducers with 64 kHz sampling provide the resolution necessary for Park's vector transforms and spectral sideband harmonics ($f_e \pm f_{fault}$).
+* **Classifier Scope & Transferability**: The downstream classifiers know only their trained benchmark classes (the 16 CWRU bearing fault classes; normal vs. anomaly fan/bearing for MIMII DG; healthy vs. outer/inner race for Paderborn). They **cannot** classify novel mechanical defect types on arbitrary new industrial machines without fine-tuning.
+* **Anomaly Score Transferability**: Only the **locally fitted anomaly scores** (vibration EDR with a healthy baseline fitted during the machine's initial commissioning period; acoustic autoencoder reconstruction errors; MCSA feature baselines) are expected to transfer across physical installations.
 
 ## 13. Repository layout
 
@@ -311,20 +327,27 @@ preprocessing/            manifest, download, loader, filtering, segmentation,
                           paderborn_loader, motor_features
 models/                   encoder, siamese (+NT-Xent), classifier, baseline_cnn,
                           motor_temperature_model
+core/                     framework-free inference, adapters, and engines:
+  analysis.py             vibration inference
+  motor_temperature.py    motor current & temp inference
+  models_api/             standardized BaseModelAdapter, registry, ModelResult
+  fusion/                 multimodal late fusion engine (max, weighted, vote)
+  replay.py               scripted scenario generation and streaming engine
 training/                 splits, datasets, train_ssl, extract_embeddings,
                           train_classifier, train_baseline, train_motor_models
 anomaly_detection/        edr, anomaly_detector
+audio_model/              dense autoencoder, feature extraction, audio inference
 evaluation/               metrics, visualization, evaluate
-core/analysis.py          framework-free vibration inference
-core/motor_temperature.py framework-free motor current & temp inference
-api/main.py               FastAPI service
-frontend/                 React + TypeScript web app
-dashboard/app.py          Streamlit monitor
-tests/                    test_pipeline.py, test_api_and_core.py, test_motor_temperature.py
-checkpoints/              trained vibration & motor checkpoints
-results/                  metrics and comparison tables
-DESIGN.md                 architecture, roadmap, paper gaps
+api/                      FastAPI service and predict/fusion/replay routes
+frontend/                 React + TypeScript + Tailwind CSS web dashboard
+dashboard/app.py          Streamlit monitor (vibration baseline)
+scripts/                  e2e_report.py, run_replay_cli.py
+tests/                    unit, integration, and e2e test suite (128 passing tests)
+checkpoints/              trained vibration, acoustic, and motor checkpoints
+results/                  metrics, comparison tables, integration results & figures
+docs/                     integration_test_report.md, audit, and audio reports
 ```
+
 
 ---
 
@@ -436,3 +459,46 @@ A dedicated **Motor Current & Temperature PdM** page is integrated directly into
   ```
 * Checkpoints: `checkpoints/motor_temp/` (`combined_model.joblib`, `current_only_model.joblib`, `temperature_only_model.joblib`).
 * Metrics & CSVs: `results/motor_temp/metrics.json` and `results/motor_temp/comparison.csv`.
+
+---
+
+## 15. Multimodal System Integration, Fusion & E2E Verification
+
+The unified predictive maintenance system integrates vibration, acoustic, and motor current telemetry into a centralized late fusion engine.
+
+### Multimodal Fusion Strategy
+1. **Normalized Score Ratios**: Every model maps anomaly indicators to $r = \text{anomaly\_score} / \text{threshold}$, where $r \ge 1.0$ flags an anomaly.
+2. **Decision Boundaries**:
+   - `NORMAL`: Fused ratio $< 0.8$.
+   - `WARNING`: Fused ratio $\ge 0.8$ or single sensor alert.
+   - `ALARM`: Fused ratio $\ge 1.0$ with $\ge 2$ sensors agreeing, or severe single sensor alert ($r \ge 2.0$).
+3. **Resilience to Missing Modalities**: Offline or unprovided sensors are marked `"not provided"`, excluded from denominator weights, and confidence is scaled by active sensor fraction.
+
+### E2E Scenario Progression Results (`results/integration/e2e_results.json`)
+
+All scenarios run 60 steps (1 step/s) pairing held-out benchmark windows:
+
+| Scenario ID | Name | Steps | Normal | Warning | Alarm | Onset Step | Trajectory Description |
+|---|---|:---:|:---:|:---:|:---:|:---:|---|
+| `healthy_baseline` | Healthy Baseline | 60 | 18 | 42 | 0 | Step 5 (warn) | Nominal baseline across vibration, audio, and motor |
+| `vibration_fault_onset` | Vibration Fault Onset | 60 | 7 | 13 | 40 | Step 21 (alarm) | Baseline $\to$ mechanical vibration impact $\to$ outer race defect |
+| `audio_fault_onset` | Acoustic Anomaly Onset | 60 | 7 | 53 | 0 | Step 5 (warn) | Nominal sound $\to$ high-frequency acoustic hiss/rumble |
+| `motor_fault_onset` | Motor Fault Onset | 60 | 7 | 53 | 0 | Step 5 (warn) | Balanced stator current $\to$ phase unbalance & thermal rise |
+| `multi_fault_escalation` | Multi-Fault Breakdown | 60 | 5 | 25 | 30 | Step 31 (alarm) | Thermal rise $\to$ acoustic hiss $\to$ catastrophic bearing trip |
+
+### API Latency Benchmarks (Median & p95)
+
+| Endpoint | Method | Median Latency | 95th-Percentile Latency |
+|---|:---:|:---:|:---:|
+| `GET /models` | `GET` | **12.32 ms** | 15.29 ms |
+| `GET /replay/scenarios` | `GET` | **4.17 ms** | 5.29 ms |
+| `POST /predict/vibration/sample/{id}` | `POST` | **31.46 ms** | 37.67 ms |
+| `POST /predict/audio/sample/{id}` | `POST` | **66.56 ms** | 106.50 ms |
+| `POST /predict/motor/sample/{id}` | `POST` | **44.42 ms** | 59.62 ms |
+| `POST /fusion` | `POST` | **6.41 ms** | 9.57 ms |
+
+### Limitations & Data Provenance Disclaimer
+* **Data Sources**: CWRU bearing dataset (vibration), MIMII DG (audio), and Paderborn University (motor current & temp).
+* **Synthetic Timeline Pairing**: Scenarios pair independently recorded test bench segments into a synchronized 60-second replay. They do not originate from a single multi-sensor motor.
+* **No Live Sensors**: Phase 1 is AI/ML validation only. Replayed data is permanently flagged with `is_replay=True` in all API responses and UI banners.
+* **Lab-to-Field Gap**: Clean test rig benchmark data does not guarantee zero-shot transfer to harsh industrial environments without on-site baseline calibration.
