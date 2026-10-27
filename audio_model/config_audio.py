@@ -102,17 +102,19 @@ class AudioDatasetConfig:
 # --------------------------------------------------------------------------
 @dataclass
 class AudioFeatureConfig:
-    """Log-Mel Spectrogram representation parameters."""
+    """Log-Mel Spectrogram and context frame stacking parameters."""
 
-    n_mels: int = 128
-    n_fft: int = 1024
-    hop_length: int = 512
-    win_length: int = 1024
-    f_min: float = 50.0
-    f_max: float = 8000.0              # Nyquist for 16 kHz
-    power: float = 2.0
-    log_offset: float = 1e-6           # Offset for log compression log(mel + eps)
-    normalize_spectrogram: bool = True # Per-spectrogram standard scaling
+    sample_rate: int = 16_000          # Audio sampling rate in Hz
+    n_fft: int = 1024                  # FFT window size
+    hop_length: int = 512              # Hop length between STFT frames
+    win_length: int = 1024             # Window length
+    n_mels: int = 128                  # Number of Mel frequency bands
+    power: float = 2.0                 # Power for magnitude spectrogram (2.0 = power)
+    context_frames: int = 5            # Number of adjacent frames to stack (DCASE baseline)
+    frame_hop: int = 1                 # Hop size when sliding context window
+    f_min: float = 50.0                # Minimum frequency
+    f_max: float = 8000.0              # Maximum frequency (Nyquist for 16 kHz)
+    clip_duration_s: float = 10.0      # Expected fixed clip duration in seconds
 
 
 # --------------------------------------------------------------------------

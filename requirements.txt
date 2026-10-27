@@ -25,3 +25,6 @@ python-multipart>=0.0.9
 # Progress bars / utilities
 tqdm>=4.66
 PyYAML>=6.0
+
+# Audio processing (Step 2)
+librosa>=0.10.0
