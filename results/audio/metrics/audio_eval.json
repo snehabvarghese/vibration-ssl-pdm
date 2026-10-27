@@ -1,0 +1,661 @@
+{
+  "metadata": {
+    "evaluation_type": "Acoustic Anomaly Detection (Dense Autoencoder Baseline)",
+    "pauc_note": "Partial AUC with max_fpr=0.1 computed via sklearn.metrics.roc_auc_score, which implements McClish (1989) standardization to interval [0.5, 1.0].",
+    "threshold_rule": "Strictly derived from training normal clips using P95 percentile. No tuning on test data."
+  },
+  "machines": {
+    "fan": {
+      "thresholds": {
+        "p90": 0.23886898159980774,
+        "p95": 0.25449755787849426,
+        "p99": 0.2786138653755188,
+        "mean": 0.2181963473558426,
+        "std": 0.02126164920628071
+      },
+      "applied_threshold": {
+        "key": "p95",
+        "value": 0.25449755787849426
+      },
+      "dcase_metrics": {
+        "hmean_auc": 0.66989916605744,
+        "hmean_pauc": 0.6123586692794127,
+        "hmean_all_official": 0.639837871250842,
+        "n_evaluated_conditions": 6
+      },
+      "domain_results": {
+        "source": {
+          "auc": 0.7001777777777778,
+          "pauc": 0.6102923976608188,
+          "threshold": 0.25449755787849426,
+          "normal_mean_score": 0.23196421563625336,
+          "anomaly_mean_score": 0.26522502303123474,
+          "accuracy": 0.66,
+          "precision": 0.8,
+          "recall": 0.4266666666666667,
+          "f1": 0.5565217391304348,
+          "false_alarm_rate": 0.10666666666666667,
+          "confusion_matrix": {
+            "tn": 134,
+            "fp": 16,
+            "fn": 86,
+            "tp": 64,
+            "matrix": [
+              [
+                134,
+                16
+              ],
+              [
+                86,
+                64
+              ]
+            ]
+          },
+          "total_clips": 300,
+          "normal_clips": 150,
+          "anomaly_clips": 150
+        },
+        "target": {
+          "auc": 0.5998666666666668,
+          "pauc": 0.5635087719298245,
+          "threshold": 0.25449755787849426,
+          "normal_mean_score": 0.27217110991477966,
+          "anomaly_mean_score": 0.3001314103603363,
+          "accuracy": 0.5433333333333333,
+          "precision": 0.5311004784688995,
+          "recall": 0.74,
+          "f1": 0.6183844011142061,
+          "false_alarm_rate": 0.6533333333333333,
+          "confusion_matrix": {
+            "tn": 52,
+            "fp": 98,
+            "fn": 39,
+            "tp": 111,
+            "matrix": [
+              [
+                52,
+                98
+              ],
+              [
+                39,
+                111
+              ]
+            ]
+          },
+          "total_clips": 300,
+          "normal_clips": 150,
+          "anomaly_clips": 150
+        }
+      },
+      "overall_results": {
+        "auc": 0.6446777777777778,
+        "pauc": 0.5660818713450293,
+        "threshold": 0.25449755787849426,
+        "normal_mean_score": 0.2520676553249359,
+        "anomaly_mean_score": 0.28267818689346313,
+        "accuracy": 0.6016666666666667,
+        "precision": 0.6055363321799307,
+        "recall": 0.5833333333333334,
+        "f1": 0.5942275042444821,
+        "false_alarm_rate": 0.38,
+        "confusion_matrix": {
+          "tn": 186,
+          "fp": 114,
+          "fn": 125,
+          "tp": 175,
+          "matrix": [
+            [
+              186,
+              114
+            ],
+            [
+              125,
+              175
+            ]
+          ]
+        },
+        "total_clips": 600,
+        "normal_clips": 300,
+        "anomaly_clips": 300
+      },
+      "conditions": [
+        {
+          "machine": "fan",
+          "section": "section_00",
+          "domain": "source",
+          "auc": 0.7719999999999999,
+          "pauc": 0.7326315789473684,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.21147310733795166,
+          "anomaly_mean_score": 0.25447455048561096,
+          "accuracy": 0.69,
+          "precision": 1.0,
+          "recall": 0.38,
+          "f1": 0.5507246376811594,
+          "false_alarm_rate": 0.0,
+          "confusion_matrix": {
+            "tn": 50,
+            "fp": 0,
+            "fn": 31,
+            "tp": 19,
+            "matrix": [
+              [
+                50,
+                0
+              ],
+              [
+                31,
+                19
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "fan",
+          "section": "section_00",
+          "domain": "target",
+          "auc": 0.6167999999999999,
+          "pauc": 0.6589473684210527,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.2978486120700836,
+          "anomaly_mean_score": 0.35597681999206543,
+          "accuracy": 0.48,
+          "precision": 0.4897959183673469,
+          "recall": 0.96,
+          "f1": 0.6486486486486487,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 50,
+            "fn": 2,
+            "tp": 48,
+            "matrix": [
+              [
+                0,
+                50
+              ],
+              [
+                2,
+                48
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "fan",
+          "section": "section_01",
+          "domain": "source",
+          "auc": 0.6336,
+          "pauc": 0.5326315789473685,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.2429753839969635,
+          "anomaly_mean_score": 0.26219508051872253,
+          "accuracy": 0.55,
+          "precision": 0.5757575757575758,
+          "recall": 0.38,
+          "f1": 0.4578313253012048,
+          "false_alarm_rate": 0.28,
+          "confusion_matrix": {
+            "tn": 36,
+            "fp": 14,
+            "fn": 31,
+            "tp": 19,
+            "matrix": [
+              [
+                36,
+                14
+              ],
+              [
+                31,
+                19
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "fan",
+          "section": "section_01",
+          "domain": "target",
+          "auc": 0.5652,
+          "pauc": 0.5094736842105263,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.26798728108406067,
+          "anomaly_mean_score": 0.2744133472442627,
+          "accuracy": 0.53,
+          "precision": 0.5211267605633803,
+          "recall": 0.74,
+          "f1": 0.6115702479338843,
+          "false_alarm_rate": 0.68,
+          "confusion_matrix": {
+            "tn": 16,
+            "fp": 34,
+            "fn": 13,
+            "tp": 37,
+            "matrix": [
+              [
+                16,
+                34
+              ],
+              [
+                13,
+                37
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "fan",
+          "section": "section_02",
+          "domain": "source",
+          "auc": 0.798,
+          "pauc": 0.7452631578947368,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.24144409596920013,
+          "anomaly_mean_score": 0.2790054678916931,
+          "accuracy": 0.74,
+          "precision": 0.9285714285714286,
+          "recall": 0.52,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 0.04,
+          "confusion_matrix": {
+            "tn": 48,
+            "fp": 2,
+            "fn": 24,
+            "tp": 26,
+            "matrix": [
+              [
+                48,
+                2
+              ],
+              [
+                24,
+                26
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "fan",
+          "section": "section_02",
+          "domain": "target",
+          "auc": 0.6948,
+          "pauc": 0.5768421052631579,
+          "threshold": 0.25449755787849426,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.2506774961948395,
+          "anomaly_mean_score": 0.2700040340423584,
+          "accuracy": 0.62,
+          "precision": 0.65,
+          "recall": 0.52,
+          "f1": 0.5777777777777777,
+          "false_alarm_rate": 0.28,
+          "confusion_matrix": {
+            "tn": 36,
+            "fp": 14,
+            "fn": 24,
+            "tp": 26,
+            "matrix": [
+              [
+                36,
+                14
+              ],
+              [
+                24,
+                26
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        }
+      ]
+    },
+    "bearing": {
+      "thresholds": {
+        "p90": 0.4675274193286896,
+        "p95": 0.4812609553337097,
+        "p99": 0.5143008828163147,
+        "mean": 0.4394635856151581,
+        "std": 0.024169571697711945
+      },
+      "applied_threshold": {
+        "key": "p95",
+        "value": 0.4812609553337097
+      },
+      "dcase_metrics": {
+        "hmean_auc": 0.5787444618216325,
+        "hmean_pauc": 0.512872238035869,
+        "hmean_all_official": 0.5438208620737884,
+        "n_evaluated_conditions": 6
+      },
+      "domain_results": {
+        "source": {
+          "auc": 0.5531555555555556,
+          "pauc": 0.5221052631578947,
+          "threshold": 0.4812609553337097,
+          "normal_mean_score": 0.7957703471183777,
+          "anomaly_mean_score": 0.8362771272659302,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 150,
+            "fn": 0,
+            "tp": 150,
+            "matrix": [
+              [
+                0,
+                150
+              ],
+              [
+                0,
+                150
+              ]
+            ]
+          },
+          "total_clips": 300,
+          "normal_clips": 150,
+          "anomaly_clips": 150
+        },
+        "target": {
+          "auc": 0.6389777777777778,
+          "pauc": 0.4928654970760234,
+          "threshold": 0.4812609553337097,
+          "normal_mean_score": 0.8581423759460449,
+          "anomaly_mean_score": 0.9400544166564941,
+          "accuracy": 0.5366666666666666,
+          "precision": 0.5190311418685121,
+          "recall": 1.0,
+          "f1": 0.683371298405467,
+          "false_alarm_rate": 0.9266666666666666,
+          "confusion_matrix": {
+            "tn": 11,
+            "fp": 139,
+            "fn": 0,
+            "tp": 150,
+            "matrix": [
+              [
+                11,
+                139
+              ],
+              [
+                0,
+                150
+              ]
+            ]
+          },
+          "total_clips": 300,
+          "normal_clips": 150,
+          "anomaly_clips": 150
+        }
+      },
+      "overall_results": {
+        "auc": 0.5988888888888888,
+        "pauc": 0.5114619883040936,
+        "threshold": 0.4812609553337097,
+        "normal_mean_score": 0.8269563913345337,
+        "anomaly_mean_score": 0.8881657123565674,
+        "accuracy": 0.5183333333333333,
+        "precision": 0.5093378607809848,
+        "recall": 1.0,
+        "f1": 0.6749156355455568,
+        "false_alarm_rate": 0.9633333333333334,
+        "confusion_matrix": {
+          "tn": 11,
+          "fp": 289,
+          "fn": 0,
+          "tp": 300,
+          "matrix": [
+            [
+              11,
+              289
+            ],
+            [
+              0,
+              300
+            ]
+          ]
+        },
+        "total_clips": 600,
+        "normal_clips": 300,
+        "anomaly_clips": 300
+      },
+      "conditions": [
+        {
+          "machine": "bearing",
+          "section": "section_00",
+          "domain": "source",
+          "auc": 0.6804,
+          "pauc": 0.6421052631578947,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.8337491750717163,
+          "anomaly_mean_score": 0.9566649794578552,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 50,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                0,
+                50
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "bearing",
+          "section": "section_00",
+          "domain": "target",
+          "auc": 0.6376,
+          "pauc": 0.4842105263157895,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 1.0497925281524658,
+          "anomaly_mean_score": 1.1401805877685547,
+          "accuracy": 0.58,
+          "precision": 0.5434782608695652,
+          "recall": 1.0,
+          "f1": 0.704225352112676,
+          "false_alarm_rate": 0.84,
+          "confusion_matrix": {
+            "tn": 8,
+            "fp": 42,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                8,
+                42
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "bearing",
+          "section": "section_01",
+          "domain": "source",
+          "auc": 0.554,
+          "pauc": 0.4905263157894737,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.6731049418449402,
+          "anomaly_mean_score": 0.6840567588806152,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 50,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                0,
+                50
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "bearing",
+          "section": "section_01",
+          "domain": "target",
+          "auc": 0.7496,
+          "pauc": 0.5452631578947369,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.6953699588775635,
+          "anomaly_mean_score": 0.8698847889900208,
+          "accuracy": 0.53,
+          "precision": 0.5154639175257731,
+          "recall": 1.0,
+          "f1": 0.6802721088435374,
+          "false_alarm_rate": 0.94,
+          "confusion_matrix": {
+            "tn": 3,
+            "fp": 47,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                3,
+                47
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "bearing",
+          "section": "section_02",
+          "domain": "source",
+          "auc": 0.48360000000000003,
+          "pauc": 0.47789473684210526,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.8804572224617004,
+          "anomaly_mean_score": 0.8681094646453857,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 50,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                0,
+                50
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        },
+        {
+          "machine": "bearing",
+          "section": "section_02",
+          "domain": "target",
+          "auc": 0.47120000000000006,
+          "pauc": 0.47368421052631576,
+          "threshold": 0.4812609553337097,
+          "threshold_key": "p95",
+          "normal_mean_score": 0.8292644619941711,
+          "anomaly_mean_score": 0.810097873210907,
+          "accuracy": 0.5,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.6666666666666666,
+          "false_alarm_rate": 1.0,
+          "confusion_matrix": {
+            "tn": 0,
+            "fp": 50,
+            "fn": 0,
+            "tp": 50,
+            "matrix": [
+              [
+                0,
+                50
+              ],
+              [
+                0,
+                50
+              ]
+            ]
+          },
+          "total_clips": 100,
+          "normal_clips": 50,
+          "anomaly_clips": 50
+        }
+      ]
+    }
+  }
+}

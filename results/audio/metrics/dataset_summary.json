@@ -1,0 +1,130 @@
+{
+  "bearing": {
+    "machine": "bearing",
+    "root_path": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing",
+    "total_clips": 3599,
+    "sampling_rate": 16000,
+    "duration_seconds": 10.0,
+    "channel_count": 1,
+    "sections": {
+      "section_00": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 10,
+          "total": 1000
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_00_source_test_normal_0000_vel_10.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_00_source_test_anomaly_0000_vel_6.wav"
+        }
+      },
+      "section_01": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 9,
+          "total": 999
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_01_source_test_normal_0000_vel_4_loc_C.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_01_source_test_anomaly_0000_vel_4_loc_C.wav"
+        }
+      },
+      "section_02": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 10,
+          "total": 1000
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_02_source_test_normal_0000_vel_14_f-n_B.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\bearing\\test\\section_02_source_test_anomaly_0000_vel_14_f-n_B.wav"
+        }
+      }
+    }
+  },
+  "fan": {
+    "machine": "fan",
+    "root_path": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan",
+    "total_clips": 3600,
+    "sampling_rate": 16000,
+    "duration_seconds": 10.0,
+    "channel_count": 1,
+    "sections": {
+      "section_00": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 10,
+          "total": 1000
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_00_source_test_normal_0000_m-n_W.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_00_source_test_anomaly_0000_m-n_W.wav"
+        }
+      },
+      "section_01": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 10,
+          "total": 1000
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_01_source_test_normal_0000_f-n_A.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_01_source_test_anomaly_0000_f-n_B.wav"
+        }
+      },
+      "section_02": {
+        "train": {
+          "source_normal": 990,
+          "target_normal": 10,
+          "total": 1000
+        },
+        "test": {
+          "source_normal": 50,
+          "source_anomaly": 50,
+          "target_normal": 50,
+          "target_anomaly": 50,
+          "total": 200
+        },
+        "sample_clips": {
+          "normal": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_02_source_test_normal_0000_n-lv_L1.wav",
+          "anomaly": "C:\\Main Project S7\\MainProject\\vibration-ssl-pdm\\data\\audio\\raw\\fan\\test\\section_02_source_test_anomaly_0000_n-lv_L2.wav"
+        }
+      }
+    }
+  }
+}

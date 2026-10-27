@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<title>Sound-Based Anomaly Detection: Evaluation Report</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 960px; margin: 40px auto; padding: 0 20px; color: #24292e; }
+h1, h2, h3 { color: #1f2328; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+th { background-color: #f6f8fa; font-weight: 600; }
+tr:nth-child(even) { background-color: #fcfcfc; }
+blockquote { margin: 16px 0; padding: 0 1em; color: #57606a; border-left: 0.25em solid #d0d7de; }
+code { font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; font-size: 85%; background-color: #afb8c133; padding: 0.2em 0.4em; border-radius: 4px; }
+pre { background-color: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; font-family: monospace; font-size: 13px; }
+img { max-width: 100%; height: auto; border: 1px solid #d0d7de; border-radius: 6px; margin: 12px 0; }
+@media print { body { max-width: 100%; margin: 10mm; font-size: 11pt; } h1, h2 { page-break-after: avoid; } table, img { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+<h1>Sound-Based Acoustic Anomaly Detection: Evaluation & Technical Report</h1>
+<blockquote>**MIMII DG / DCASE 2022 Challenge Task 2 Benchmark**  </blockquote>
+<blockquote>*Unsupervised Acoustic Condition Monitoring under Operating Domain Shifts*</blockquote>
+<hr>
+<h2>Table of Contents</h2>
+<p>1. [Objective & Dataset Description](#1-objective--dataset-description)</p>
+<p>2. [Signal Preprocessing & Feature Extraction](#2-signal-preprocessing--feature-extraction)</p>
+<p>3. [Model Architecture & Training Setup](#3-model-architecture--training-setup)</p>
+<p>4. [Decision Threshold Methodology](#4-decision-threshold-methodology)</p>
+<p>5. [Experimental Results & DCASE Benchmarks](#5-experimental-results--dcase-benchmarks)</p>
+<p>6. [Honest Analysis & Failure Modes](#6-honest-analysis--failure-modes)</p>
+<p>7. [How to Reproduce](#7-how-to-reproduce)</p>
+<p>8. [Inference API & CLI Usage Guide](#8-inference-api--cli-usage-guide)</p>
+<hr>
+<h2>1. Objective & Dataset Description</h2>
+<p>The objective of this pipeline is **unsupervised acoustic anomaly detection** for industrial machinery condition monitoring. The system is trained exclusively on normal acoustic signatures and evaluated on distinguishing healthy from faulty audio under severe domain shifts (operational changes such as load, speed, or background noise).</p>
+<p>The benchmark dataset is **MIMII DG (Malfunctioning Industrial Machine Investigation and Inspection for Domain Generalization)**, part of the **DCASE 2022 Challenge Task 2**.</p>
+<h3>Dataset Inventory (Programmatically Extracted from `dataset_summary.json`)</h3>
+<table><thead><tr><th>Machine Type</th><th>Total Clips</th><th>Audio Format</th><th>Duration</th><th>Normal Training Clips</th><th>Test Normal Clips</th><th>Test Anomaly Clips</th><th>Total Test Clips</th></tr></thead><tbody>
+<tr><td>**Fan**</td><td>3600</td><td>16 kHz Mono PCM</td><td>10.0 s</td><td>3,000 (2,970 source / 30 target)</td><td>300 (150 source / 150 target)</td><td>300 (150 source / 150 target)</td><td>600</td></tr>
+<tr><td>**Bearing**</td><td>3599</td><td>16 kHz Mono PCM</td><td>10.0 s</td><td>2,999 (2,970 source / 29 target)</td><td>300 (150 source / 150 target)</td><td>300 (150 source / 150 target)</td><td>600</td></tr>
+</tbody></table>
+<p>Each machine type contains three operational sections (`section_00`, `section_01`, `section_02`). Each section contains:</p>
+<p>- **Source Domain**: Primary operating condition with abundant normal training recordings (990 clips/section) and 100 test clips (50 normal, 50 anomaly).</p>
+<p>- **Target Domain**: Shifted operating condition (different RPM, voltage, or ambient noise) with very few normal training clips (10 clips/section) and 100 test clips (50 normal, 50 anomaly).</p>
+<p><img src='../results/audio/figures/dataset_class_balance.png' alt='Class Balance'><br><small><em>Figure: Class Balance</em></small></p>
+<hr>
+<h2>2. Signal Preprocessing & Feature Extraction</h2>
+<p>Raw 10-second audio waveforms are converted into context-stacked log-Mel spectral representations following the DCASE Challenge Task 2 specification:</p>
+<p>1. **Resampling**: All recordings are standardized to **16,000 Hz** single-channel mono.</p>
+<p>2. **Log-Mel Spectrogram**: Computed via STFT with:</p>
+<p>   - FFT window size (`n_fft`): **1024** (~64 ms)</p>
+<p>   - Hop length (`hop_length`): **512** (~32 ms)</p>
+<p>   - Frequency range: **50 Hz to 8,000 Hz** (Nyquist)</p>
+<p>   - Mel frequency bins (`n_mels`): **128**</p>
+<p>   - Power to Decibels: `10 * log10(power / ref)` with `ref=1.0`.</p>
+<p>   - Each 10s audio yields a spectrogram of shape `(128, 313)`.</p>
+<p>3. **Standardization (AudioNormalizer)**: A per-machine standardizer is fitted **strictly on the normal training split**. For each Mel band $b$, mean $\mu_b$ and standard deviation $\sigma_b$ are computed and applied to normalize validation and test sets without data leakage.</p>
+<p>4. **Context Frame Stacking**: 5 consecutive frames are concatenated into a **640-dimensional** vector ($128 \times 5$) with stride hop of 1 frame:</p>
+<p>   $$\mathbf{x}_t = [\mathbf{m}_t^T, \mathbf{m}_{t+1}^T, \mathbf{m}_{t+2}^T, \mathbf{m}_{t+3}^T, \mathbf{m}_{t+4}^T]^T \in \mathbb{R}^{640}$$</p>
+<p>   Each 10s clip produces **309** temporal frame vectors of dimension 640.</p>
+<p>5. **Stratified Train/Validation Split**: 10% of normal training clips are held out for validation monitoring, stratified across `(section, domain)` so both source and target normal distributions are tracked during training.</p>
+<p><img src='../results/audio/figures/fan_example_comparison.png' alt='Fan Example Comparison'><br><small><em>Figure: Fan Example Comparison</em></small></p>
+<p><img src='../results/audio/figures/bearing_example_comparison.png' alt='Bearing Example Comparison'><br><small><em>Figure: Bearing Example Comparison</em></small></p>
+<hr>
+<h2>3. Model Architecture & Training Setup</h2>
+<p>The anomaly detection model is a symmetric **Dense Autoencoder** with a narrow 8-dimensional bottleneck:</p>
+<pre><code>
+Input (640) 
+  -&gt; Linear(640, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 8)   [Bottleneck Latent Space]
+  -&gt; Linear(8, 128)   -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 128) -&gt; BatchNorm1d -&gt; ReLU
+  -&gt; Linear(128, 640) [Linear Reconstruction]
+</code></pre>
+<h3>Training Configuration & Hyperparameters</h3>
+<p>- **Training Loss**: Mean Squared Error (MSE) reconstruction loss: $\mathcal{L} = \frac{1}{D} \sum_{d=1}^D (x_d - \hat{x}_d)^2$.</p>
+<p>- **Optimizer**: Adam (`lr = 1e-3`, `weight_decay = 0.0`).</p>
+<p>- **Batch Size**: 512 frame vectors.</p>
+<p>- **Max Epochs**: 100 with Early Stopping (patience = 10 epochs on validation MSE).</p>
+<p>- **Random Seed**: `42` (seeded across Python, NumPy, and PyTorch).</p>
+<p>- **Compute Hardware**: NVIDIA GeForce RTX 3050 Laptop GPU (CUDA).</p>
+<h3>Training Progress Summary</h3>
+<table><thead><tr><th>Machine</th><th>Training Frames</th><th>Val Frames</th><th>Best Epoch / Total</th><th>Train MSE Loss</th><th>Best Val MSE Loss</th><th>Checkpoint Size</th></tr></thead><tbody>
+<tr><td>**Fan**</td><td>834,300</td><td>92,700</td><td>50 / 60</td><td>0.219144</td><td>0.226279</td><td>1.09 MB</td></tr>
+<tr><td>**Bearing**</td><td>833,991</td><td>92,700</td><td>60 / 70</td><td>0.219144</td><td>0.454030</td><td>1.09 MB</td></tr>
+</tbody></table>
+<p><img src='../results/audio/figures/fan_loss.png' alt='Fan Loss Curve'><br><small><em>Figure: Fan Loss Curve</em></small></p>
+<p><img src='../results/audio/figures/bearing_loss.png' alt='Bearing Loss Curve'><br><small><em>Figure: Bearing Loss Curve</em></small></p>
+<hr>
+<h2>4. Decision Threshold Methodology</h2>
+<h3>Clip Anomaly Score Formulation</h3>
+<p>For any audio clip containing $T$ stacked frames, the clip anomaly score $\mathcal{A}(\text{clip})$ is the mean reconstruction MSE across all its frames:</p>
+<p>$$\mathcal{A}(\text{clip}) = \frac{1}{T} \sum_{t=1}^T \|\mathbf{x}_t - \hat{\mathbf{x}}_t\|^2$$</p>
+<h3>Threshold Derivation (Zero Test Leakage)</h3>
+<p>Decision thresholds were computed **strictly from the empirical distribution of reconstruction scores on the TRAINING normal dataset**:</p>
+<p>- **$P_{95}$ (Primary Threshold)**: The 95th percentile of normal training scores. By definition, exactly 5% of training normal clips are allowed to trigger false alarms.</p>
+<p>- **$P_{90}$ and $P_{99}$**: Secondary thresholds stored in metadata for stricter or more relaxed operational tuning.</p>
+<table><thead><tr><th>Machine</th><th>Normal Train Mean</th><th>Normal Train Std</th><th>$P_{90}$ Threshold</th><th>$P_{95}$ Threshold (Primary)</th><th>$P_{99}$ Threshold</th></tr></thead><tbody>
+<tr><td>**Fan**</td><td>0.21820</td><td>0.02126</td><td>0.23887</td><td>**0.25450**</td><td>0.27861</td></tr>
+<tr><td>**Bearing**</td><td>0.43946</td><td>0.02417</td><td>0.46753</td><td>**0.48126**</td><td>0.51430</td></tr>
+</tbody></table>
+<blockquote>**Why Test Data Was Strictly Never Used**  </blockquote>
+<blockquote>In real-world predictive maintenance, future operational anomalies are unknown, unobserved, and unavailable. Tuning classification thresholds on test data constitutes target leakage and produces artificially inflated, non-replicable metrics. Restricting threshold selection to training data represents genuine unsupervised operation.</blockquote>
+<hr>
+<h2>5. Experimental Results & DCASE Benchmarks</h2>
+<h3>Official DCASE Challenge Task 2 Metric</h3>
+<p>Following the DCASE Challenge Task 2 evaluation protocol, performance is measured using:</p>
+<p>1. **ROC-AUC**: Standard Area Under Receiver Operating Characteristic curve.</p>
+<p>2. **Partial AUC (pAUC, max_fpr = 0.1)**: Area under ROC curve restricted to the low false-positive rate interval $[0, 0.1]$.  </p>
+<p>   *Standardization Note*: `sklearn.metrics.roc_auc_score(..., max_fpr=0.1)` applies McClish (1989) standardization to $[0.5, 1.0]$ where 0.50 denotes random guessing and 1.0 denotes perfect separation.</p>
+<p>3. **Official Score (Harmonic Mean)**: Harmonic mean across all evaluated sections and domains:</p>
+<p>   $$\Omega_m = \text{hmean}\left(\{AUC_{m, s, d}\} \cup \{pAUC_{m, s, d}\}\right)$$</p>
+<h3>Summary of DCASE Harmonic Mean Scores</h3>
+<table><thead><tr><th>Machine Type</th><th>Harmonic Mean AUC</th><th>Harmonic Mean pAUC ($max\_fpr=0.1$)</th><th>Official Challenge Score (H-Mean All)</th></tr></thead><tbody>
+<tr><td>**Fan**</td><td>**0.6699**</td><td>**0.6124**</td><td>**0.6398**</td></tr>
+<tr><td>**Bearing**</td><td>**0.5787**</td><td>**0.5129**</td><td>**0.5438**</td></tr>
+</tbody></table>
+<hr>
+<h3>Detailed Results Table per Section and Domain</h3>
+<p>*(Extracted programmatically from `audio_eval.json`)*</p>
+<table><thead><tr><th>Machine</th><th>Section</th><th>Domain</th><th>Clips (N/A)</th><th>ROC-AUC</th><th>pAUC ($FPR \le 0.1$)</th><th>Threshold ($P_{95}$)</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>False Alarm Rate (FAR)</th><th>F1 Score</th></tr></thead><tbody>
+<tr><td>**fan**</td><td>`section_00`</td><td>source</td><td>50/50</td><td>**0.7720**</td><td>**0.7326**</td><td>0.2545</td><td>0.6900</td><td>1.0000</td><td>0.3800</td><td>0.0000</td><td>0.5507</td></tr>
+<tr><td>**fan**</td><td>`section_00`</td><td>target</td><td>50/50</td><td>**0.6168**</td><td>**0.6589**</td><td>0.2545</td><td>0.4800</td><td>0.4898</td><td>0.9600</td><td>1.0000</td><td>0.6486</td></tr>
+<tr><td>**fan**</td><td>`section_01`</td><td>source</td><td>50/50</td><td>**0.6336**</td><td>**0.5326**</td><td>0.2545</td><td>0.5500</td><td>0.5758</td><td>0.3800</td><td>0.2800</td><td>0.4578</td></tr>
+<tr><td>**fan**</td><td>`section_01`</td><td>target</td><td>50/50</td><td>**0.5652**</td><td>**0.5095**</td><td>0.2545</td><td>0.5300</td><td>0.5211</td><td>0.7400</td><td>0.6800</td><td>0.6116</td></tr>
+<tr><td>**fan**</td><td>`section_02`</td><td>source</td><td>50/50</td><td>**0.7980**</td><td>**0.7453**</td><td>0.2545</td><td>0.7400</td><td>0.9286</td><td>0.5200</td><td>0.0400</td><td>0.6667</td></tr>
+<tr><td>**fan**</td><td>`section_02`</td><td>target</td><td>50/50</td><td>**0.6948**</td><td>**0.5768**</td><td>0.2545</td><td>0.6200</td><td>0.6500</td><td>0.5200</td><td>0.2800</td><td>0.5778</td></tr>
+<tr><td>**fan**</td><td>*ALL*</td><td>**source**</td><td>150/150</td><td>**0.7002**</td><td>**0.6103**</td><td>0.2545</td><td>0.6600</td><td>0.8000</td><td>0.4267</td><td>0.1067</td><td>0.5565</td></tr>
+<tr><td>**fan**</td><td>*ALL*</td><td>**target**</td><td>150/150</td><td>**0.5999**</td><td>**0.5635**</td><td>0.2545</td><td>0.5433</td><td>0.5311</td><td>0.7400</td><td>0.6533</td><td>0.6184</td></tr>
+<tr><td>**fan**</td><td>*ALL*</td><td>*COMBINED*</td><td>300/300</td><td>**0.6447**</td><td>**0.5661**</td><td>0.2545</td><td>0.6017</td><td>0.6055</td><td>0.5833</td><td>0.3800</td><td>0.5942</td></tr>
+<tr><td>**bearing**</td><td>`section_00`</td><td>source</td><td>50/50</td><td>**0.6804**</td><td>**0.6421**</td><td>0.4813</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td><td>0.6667</td></tr>
+<tr><td>**bearing**</td><td>`section_00`</td><td>target</td><td>50/50</td><td>**0.6376**</td><td>**0.4842**</td><td>0.4813</td><td>0.5800</td><td>0.5435</td><td>1.0000</td><td>0.8400</td><td>0.7042</td></tr>
+<tr><td>**bearing**</td><td>`section_01`</td><td>source</td><td>50/50</td><td>**0.5540**</td><td>**0.4905**</td><td>0.4813</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td><td>0.6667</td></tr>
+<tr><td>**bearing**</td><td>`section_01`</td><td>target</td><td>50/50</td><td>**0.7496**</td><td>**0.5453**</td><td>0.4813</td><td>0.5300</td><td>0.5155</td><td>1.0000</td><td>0.9400</td><td>0.6803</td></tr>
+<tr><td>**bearing**</td><td>`section_02`</td><td>source</td><td>50/50</td><td>**0.4836**</td><td>**0.4779**</td><td>0.4813</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td><td>0.6667</td></tr>
+<tr><td>**bearing**</td><td>`section_02`</td><td>target</td><td>50/50</td><td>**0.4712**</td><td>**0.4737**</td><td>0.4813</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td><td>0.6667</td></tr>
+<tr><td>**bearing**</td><td>*ALL*</td><td>**source**</td><td>150/150</td><td>**0.5532**</td><td>**0.5221**</td><td>0.4813</td><td>0.5000</td><td>0.5000</td><td>1.0000</td><td>1.0000</td><td>0.6667</td></tr>
+<tr><td>**bearing**</td><td>*ALL*</td><td>**target**</td><td>150/150</td><td>**0.6390**</td><td>**0.4929**</td><td>0.4813</td><td>0.5367</td><td>0.5190</td><td>1.0000</td><td>0.9267</td><td>0.6834</td></tr>
+<tr><td>**bearing**</td><td>*ALL*</td><td>*COMBINED*</td><td>300/300</td><td>**0.5989**</td><td>**0.5115**</td><td>0.4813</td><td>0.5183</td><td>0.5093</td><td>1.0000</td><td>0.9633</td><td>0.6749</td></tr>
+</tbody></table>
+<h3>Evaluation Visualizations</h3>
+<p><img src='../results/audio/figures/audio_roc_curves.png' alt='ROC Curves'><br><small><em>Figure: ROC Curves</em></small></p>
+<p><img src='../results/audio/figures/audio_score_histograms.png' alt='Score Histograms'><br><small><em>Figure: Score Histograms</em></small></p>
+<p><img src='../results/audio/figures/audio_confusion_matrices.png' alt='Confusion Matrices'><br><small><em>Figure: Confusion Matrices</em></small></p>
+<p><img src='../results/audio/figures/audio_auc_pauc_comparison.png' alt='AUC and pAUC Bars'><br><small><em>Figure: AUC and pAUC Bars</em></small></p>
+<hr>
+<h2>6. Honest Analysis & Failure Modes</h2>
+<h3>Where the Baseline Works</h3>
+<p>- **Fan Source Domain**: Achieves strong anomaly separation with AUC of **0.7002** (reaching **0.7720** in `section_00` and **0.7980** in `section_02`). False alarm rate under the training $P_{95}$ threshold is low (0.0% in section 00 and 4.0% in section 02). In stable operational regimes, the 8-dimensional bottleneck captures healthy blade rotation physics effectively.</p>
+<p>- **Bearing Section 01 Target**: Detects anomalies with an AUC of **0.7496**, indicating that certain defect modes produce distinct frequency peaks that easily escape autoencoder reconstruction.</p>
+<h3>Source vs Target Domain Gap (The Covariate Shift Problem)</h3>
+<p>- **Fan**: Suffers a ~10% AUC drop from source domain (**0.7002**) to target domain (**0.5999**). More significantly, the False Alarm Rate under the fixed $P_{95}$ threshold explodes from **10.67%** on source to **65.33%** on target clips. Environmental noise and fan speed shifts alter normal acoustics, causing the model to mistake healthy target clips for anomalies.</p>
+<p>- **Bearing Threshold Breakdown**: Test bearing clips exhibit systematically higher reconstruction errors than training normal clips (mean score shifts from 0.439 to 0.827). Under the static training threshold ($P_{95} = 0.4813$), **96.33% of test clips are flagged as anomalous**. While relative ranking retains an overall AUC of 0.5989, static thresholding without domain adaptation completely collapses in production.</p>
+<h3>Regimes Operating Near or Below Random Chance</h3>
+<p>- **Bearing `section_02`**: Functions **at or slightly below random coin-flip guessing**:</p>
+<p>  - `section_02` source: $\text{AUC} = 0.4836$, $\text{pAUC} = 0.4779$</p>
+<p>  - `section_02` target: $\text{AUC} = 0.4712$, $\text{pAUC} = 0.4737$</p>
+<p>  In this operational speed/load condition, the dense autoencoder's 8-dim bottleneck cannot isolate defect acoustic energy from ambient noise.</p>
+<p>- **Bearing `section_01` source** (pAUC: 0.4905) and **Fan `section_01` target** (pAUC: 0.5095) also fail to exceed the 0.50 chance threshold in the critical low-FPR region.</p>
+<h3>Limitations of a Single Seed</h3>
+<p>- All experiments were conducted with `seed=42`. Dense autoencoder bottlenecks are sensitive to weight initialization and stochastic batch sampling on complex spectra. Multiple-seed trials or ensemble averaging are required for production confidence intervals.</p>
+<h3>Generalization to Physical Testbenches & Sensors</h3>
+<p>- **Critical Real-World Warning**: MIMII DG recordings consist of machine audio mixed with artificially played industrial background noise in a test environment. These results **do not guarantee performance on our physical motor/vibration testbench**. Actual electric motor condition monitoring involves:</p>
+<p>  1. Direct mechanical vibration coupling through accelerometers (which avoids airborne acoustic reflection and room reverberation).</p>
+<p>  2. Inverter electromagnetic interference (EMI / PWM switching noise) absent in microphone recordings.</p>
+<p>  3. Non-stationary industrial duty cycles.</p>
+<hr>
+<h2>7. How to Reproduce</h2>
+<p>Run the following commands in sequence from the project root within the activated virtual environment:</p>
+<pre><code>
+# 1. Activate virtual environment
+.venv\Scripts\Activate.ps1
+
+# 2. Download MIMII DG raw audio (fan and bearing)
+python -m audio_model.preprocessing.download_mimii_dg --machines fan bearing
+
+# 3. Verify and explore raw audio counts
+python -m audio_model.preprocessing.explore
+
+# 4. Preprocess log-Mel features, normalizers, and context stacking
+python -m audio_model.preprocessing.build_dataset --machines fan bearing
+
+# 5. Train the Dense Autoencoder models (normal data only)
+python -m audio_model.training.train_autoencoder --machines fan bearing --epochs 100 --batch-size 512
+
+# 6. Evaluate on test sets and generate figures and metrics
+python -m audio_model.evaluation.evaluate_audio --machines fan bearing
+
+# 7. Execute automated unit and integration tests
+pytest tests/test_audio_model.py tests/test_audio_inference.py -v
+</code></pre>
+<hr>
+<h2>8. Inference API & CLI Usage Guide</h2>
+<h3>Python API (`predict_audio`)</h3>
+<pre><code>
+from audio_model.inference import predict_audio
+
+# 1. Predict from a .wav audio file path
+result = predict_audio(
+    audio='data/audio/raw/fan/test/section_00_source_test_anomaly_0003_m-n_W.wav',
+    machine_type='fan',
+    threshold_percentile=95,
+)
+print(f"Status: {result['status']}")
+print(f"Reconstruction Score: {result['anomaly_score']:.5f}")
+print(f"Decision Threshold:   {result['threshold']:.5f}")
+print(f"Is Anomaly:           {result['is_anomaly']}")
+
+# 2. Predict from a raw NumPy audio array (e.g. from microphone stream)
+import numpy as np
+audio_array = np.random.randn(16000 * 5).astype(np.float32)  # 5s array
+result_stream = predict_audio(
+    audio=audio_array,
+    sampling_rate=16000,
+    machine_type='fan',
+)
+</code></pre>
+<h3>Command-Line Interface (CLI)</h3>
+<pre><code>
+# Run inference on any clip
+python -m audio_model.inference data/audio/raw/fan/test/section_00_source_test_normal_0000_m-n_W.wav --machine fan
+
+# Output raw JSON format
+python -m audio_model.inference data/audio/raw/fan/test/section_00_source_test_anomaly_0003_m-n_W.wav --machine fan --json
+</code></pre>
+</body></html>
