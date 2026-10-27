@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { ResultCharts } from '../components/Charts';
 import { Card, StatusBadge } from '../components/ui';
-import type { AnalysisResult, EmbeddingMapResponse, HistoryEntry } from '../types/api';
+import type { EmbeddingMapResponse, HistoryEntry } from '../types/api';
 import { getEmbeddingMap } from '../api/client';
 
 export default function HistoryPage() {
@@ -78,11 +78,21 @@ export default function HistoryPage() {
                   <span className="text-sm font-medium text-gray-200 truncate max-w-[60%]">
                     {entry.source_name}
                   </span>
-                  <StatusBadge anomalous={entry.anomalous} />
+                  <div className="flex items-center gap-1.5">
+                    {entry.is_replay && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        REPLAY
+                      </span>
+                    )}
+                    <StatusBadge anomalous={entry.anomalous} />
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500">
-                  {entry.predicted_class} · {(entry.confidence * 100).toFixed(0)}%
-                </p>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>
+                    {entry.modality?.toUpperCase() ?? 'ANALYSIS'} • {entry.predicted_class}
+                  </span>
+                  <span>{(entry.confidence * 100).toFixed(0)}%</span>
+                </div>
                 <p className="text-xs text-gray-600 mt-1">
                   {new Date(entry.timestamp).toLocaleString()}
                 </p>
@@ -117,24 +127,90 @@ function HistoryDetail({
   entry: HistoryEntry;
   embeddingMap: EmbeddingMapResponse | null;
 }) {
-  const r: AnalysisResult = entry.result;
+  const r = entry.result;
+  const mr = entry.model_result;
+  const fr = entry.fusion_result;
 
   return (
     <div className="space-y-4 page-enter">
       <div className="flex items-center gap-3 flex-wrap">
         <StatusBadge anomalous={entry.anomalous} />
-        <span className="text-lg font-bold text-white">{r.predicted_class}</span>
-        <span className="text-sm text-gray-500">
-          {(r.confidence * 100).toFixed(1)}% confidence
-        </span>
-        {r.true_label && (
-          <span className="text-xs bg-healthy/10 text-healthy px-2 py-0.5 rounded-full border border-healthy/20">
-            True: {r.true_label}
+        {entry.modality && (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/15 text-brand-300 border border-brand-500/30 uppercase">
+            {entry.modality}
           </span>
         )}
+        {entry.is_replay && (
+          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">
+            Recorded Replay Sample
+          </span>
+        )}
+        <span className="text-lg font-bold text-white">{entry.predicted_class}</span>
+        <span className="text-sm text-gray-500">
+          {(entry.confidence * 100).toFixed(1)}% confidence
+        </span>
       </div>
 
-      {embeddingMap && (
+      {/* ModelResult details if present */}
+      {mr && (
+        <Card title="Diagnostic Metrics">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
+            <div>
+              <span className="text-gray-500 block">Anomaly Score</span>
+              <span className="font-mono font-bold text-gray-200">{mr.anomaly_score.toFixed(3)}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Threshold</span>
+              <span className="font-mono font-bold text-gray-200">{mr.threshold.toFixed(3)}</span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Score Ratio</span>
+              <span className={`font-mono font-bold ${mr.score_ratio >= 1.0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                {mr.score_ratio.toFixed(2)}x
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 block">Source</span>
+              <span className="text-gray-300 font-mono truncate block">{entry.source_name}</span>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* FusionResult details if present */}
+      {fr && (
+        <Card title="Multimodal Fusion Verdict">
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <span className="text-gray-500 block">Fused Status</span>
+                <span className="font-bold text-gray-100">{fr.fused_status}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 block">Fused Score</span>
+                <span className="font-mono font-bold text-gray-100">{fr.fused_score.toFixed(3)}</span>
+              </div>
+              <div>
+                <span className="text-gray-500 block">Method</span>
+                <span className="font-mono text-brand-300">{fr.method.toUpperCase()}</span>
+              </div>
+            </div>
+            {fr.reasons && fr.reasons.length > 0 && (
+              <div>
+                <span className="text-gray-400 font-semibold block mb-1">Reasons:</span>
+                <ul className="list-disc list-inside text-gray-300 space-y-0.5">
+                  {fr.reasons.map((rs, i) => (
+                    <li key={i}>{rs}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Original vibration result charts if present */}
+      {r && embeddingMap && (
         <ResultCharts
           result={r}
           bgPoints={embeddingMap.points}
@@ -144,3 +220,4 @@ function HistoryDetail({
     </div>
   );
 }
+

@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 const links = [
+  { to: '/dashboard', label: 'Dashboard', icon: '🎛️' },
   { to: '/analyse', label: 'Vibration', icon: '📊' },
   { to: '/motor', label: 'Motor & Temp', icon: '⚡' },
   { to: '/history', label: 'History', icon: '📋' },

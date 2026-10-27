@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, Link } from 'react-router-dom';
 import Layout from './components/Layout';
 import { ThemeProvider } from './context/ThemeContext';
+import DashboardPage from './pages/DashboardPage';
 import AnalysePage from './pages/AnalysePage';
 import HistoryPage from './pages/HistoryPage';
 import LivePage from './pages/LivePage';
@@ -17,10 +18,10 @@ function NotFoundPage() {
           The page you requested does not exist in the diagnostics system.
         </p>
         <Link
-          to="/analyse"
+          to="/dashboard"
           className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors"
         >
-          Return to Analyse
+          Return to Dashboard
         </Link>
       </Card>
     </div>
@@ -33,7 +34,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<Navigate to="/analyse" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/analyse" element={<AnalysePage />} />
             <Route path="/motor" element={<MotorPage />} />
             <Route path="/history" element={<HistoryPage />} />

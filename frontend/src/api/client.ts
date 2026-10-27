@@ -15,7 +15,10 @@ import type {
   Recording,
 } from '../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+export const API_BASE_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
+export const WS_BASE_URL: string =
+  import.meta.env.VITE_WS_URL ?? API_BASE_URL.replace(/^http/, 'ws');
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -123,5 +126,104 @@ export async function getEmbeddingMap(
   return data;
 }
 
+// Multimodal Fusion, Models & Replay
+// --------------------------------------------------------------------------
+import type {
+  FusionRequest,
+  FusionResult,
+  ModelInfo,
+  ModelResult,
+  SampleRecord,
+  ScenarioMetadata,
+} from '../types/api';
+
+export async function getModels(): Promise<ModelInfo[]> {
+  const { data } = await api.get<ModelInfo[]>('/models');
+  return data;
+}
+
+export async function getSamples(modality: string): Promise<SampleRecord[]> {
+  const { data } = await api.get<SampleRecord[]>(`/samples/${modality}`);
+  return data;
+}
+
+export async function predictSample(
+  modality: string,
+  sampleId: string,
+): Promise<ModelResult> {
+  const { data } = await api.post<ModelResult>(`/predict/${modality}/sample/${sampleId}`);
+  return data;
+}
+
+export async function predictAudio(
+  file: File,
+  machineType: string = 'fan',
+  thresholdPercentile: number = 95,
+): Promise<ModelResult> {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('machine_type', machineType);
+  form.append('threshold_percentile', String(thresholdPercentile));
+
+  const { data } = await api.post<ModelResult>('/predict/audio', form);
+  return data;
+}
+
+export async function predictMotorSignal(
+  file?: File,
+  temperature?: number,
+  samplingRate: number = 64_000,
+  modelMode: string = 'combined',
+  currentPhase1?: string,
+  currentPhase2?: string,
+): Promise<ModelResult> {
+  const form = new FormData();
+  if (file) form.append('file', file);
+  if (temperature !== undefined && !isNaN(temperature)) {
+    form.append('temperature', String(temperature));
+  }
+  form.append('sampling_rate', String(samplingRate));
+  form.append('model_mode', modelMode);
+  if (currentPhase1) form.append('current_phase1', currentPhase1);
+  if (currentPhase2) form.append('current_phase2', currentPhase2);
+
+  const { data } = await api.post<ModelResult>('/predict/motor', form);
+  return data;
+}
+
+export async function predictVibrationSignal(
+  file: File,
+  samplingRate: number = 12000,
+  channel?: string,
+  clfName: string = 'svm_rbf',
+): Promise<ModelResult> {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('sampling_rate', String(samplingRate));
+  if (channel) form.append('channel', channel);
+  form.append('clf_name', clfName);
+
+  const { data } = await api.post<ModelResult>('/predict/vibration', form);
+  return data;
+}
+
+export async function getReplayScenarios(): Promise<ScenarioMetadata[]> {
+  const { data } = await api.get<ScenarioMetadata[]>('/replay/scenarios');
+  return data;
+}
+
+export async function getFusionConfig(): Promise<Record<string, any>> {
+  const { data } = await api.get<Record<string, any>>('/fusion/config');
+  return data;
+}
+
+export async function postFusion(payload: FusionRequest): Promise<FusionResult> {
+  const { data } = await api.post<FusionResult>('/fusion', payload);
+  return data;
+}
+
 export default api;
+
+
+
 

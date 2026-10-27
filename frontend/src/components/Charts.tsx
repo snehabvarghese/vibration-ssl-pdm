@@ -288,3 +288,232 @@ export function ResultCharts({ result, bgPoints, classes }: ResultChartsProps) {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Multimodal PdM Trend Chart                                       */
+/* ------------------------------------------------------------------ */
+
+export interface MultimodalTrendPoint {
+  step: number;
+  timeLabel: string;
+  vibrationRatio?: number | null;
+  audioRatio?: number | null;
+  motorRatio?: number | null;
+  fusedScore?: number | null;
+}
+
+interface MultimodalTrendChartProps {
+  data: MultimodalTrendPoint[];
+}
+
+export function MultimodalTrendChart({ data }: MultimodalTrendChartProps) {
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <LineChart data={data} margin={{ top: 10, right: 25, left: 0, bottom: 5 }}>
+        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+        <XAxis
+          dataKey="timeLabel"
+          tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+          label={{ value: 'Step (s)', position: 'insideBottomRight', offset: -5, fill: AXIS_COLOR, fontSize: 11 }}
+        />
+        <YAxis
+          tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+          domain={[0, (dataMax: number) => Math.max(1.5, Math.ceil(dataMax * 1.2))]}
+          label={{ value: 'Score / Ratio', angle: -90, position: 'insideLeft', fill: AXIS_COLOR, fontSize: 11 }}
+        />
+        <Tooltip
+          contentStyle={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+          labelStyle={{ color: '#a0a0b0' }}
+          formatter={(value) => [typeof value === 'number' ? value.toFixed(3) : value, '']}
+        />
+        <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 12, paddingBottom: 10 }} />
+        <ReferenceLine
+          y={1.0}
+          stroke="#ef4444"
+          strokeDasharray="5 5"
+          strokeWidth={2}
+          label={{
+            value: 'Threshold (1.0)',
+            fill: '#ef4444',
+            position: 'right',
+            fontSize: 11,
+          }}
+        />
+        <Line
+          type="monotone"
+          dataKey="vibrationRatio"
+          stroke="#38bdf8"
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+          name="Vibration Ratio"
+        />
+        <Line
+          type="monotone"
+          dataKey="audioRatio"
+          stroke="#c084fc"
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+          name="Audio Ratio"
+        />
+        <Line
+          type="monotone"
+          dataKey="motorRatio"
+          stroke="#f59e0b"
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+          name="Motor Ratio"
+        />
+        <Line
+          type="monotone"
+          dataKey="fusedScore"
+          stroke="#10b981"
+          strokeWidth={3}
+          dot={false}
+          isAnimationActive={false}
+          name="Fused Score"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Acoustic Sound Plot (Frame Reconstruction Error / Energy)        */
+/* ------------------------------------------------------------------ */
+
+interface SoundPlotProps {
+  frameScores?: number[];
+  threshold?: number;
+  samplingRate?: number;
+}
+
+export function SoundPlot({ frameScores = [], threshold, samplingRate = 16000 }: SoundPlotProps) {
+  if (!frameScores || frameScores.length === 0) {
+    return (
+      <div className="h-48 border border-dashed border-white/10 rounded-lg flex items-center justify-center text-xs text-gray-500">
+        No frame-level acoustic metrics available.
+      </div>
+    );
+  }
+
+  const hopSize = 512;
+  const data = frameScores.map((score, i) => ({
+    time: +((i * hopSize) / samplingRate).toFixed(2),
+    frame: i + 1,
+    score: +score.toFixed(4),
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+        <XAxis
+          dataKey="time"
+          tick={{ fill: AXIS_COLOR, fontSize: 11 }}
+          label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5, fill: AXIS_COLOR, fontSize: 11 }}
+        />
+        <YAxis tick={{ fill: AXIS_COLOR, fontSize: 11 }} />
+        <Tooltip
+          contentStyle={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+          labelStyle={{ color: '#a0a0b0' }}
+        />
+        {threshold != null && threshold > 0 && (
+          <ReferenceLine
+            y={threshold}
+            stroke="#ef4444"
+            strokeDasharray="5 5"
+            strokeWidth={2}
+            label={{ value: 'Threshold', fill: '#ef4444', position: 'right', fontSize: 11 }}
+          />
+        )}
+        <Line
+          type="monotone"
+          dataKey="score"
+          stroke="#c084fc"
+          strokeWidth={1.5}
+          dot={false}
+          name="Frame Reconstruction Error"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Motor Diagnostic Series Plot                                      */
+/* ------------------------------------------------------------------ */
+
+interface MotorSeriesPlotProps {
+  features?: Record<string, number | undefined>;
+  waveform?: number[];
+}
+
+export function MotorSeriesPlot({ features = {}, waveform }: MotorSeriesPlotProps) {
+  // If waveform exists, plot waveform time series
+  if (waveform && waveform.length > 0) {
+    const downsampled = waveform.filter((_, i) => i % Math.max(1, Math.floor(waveform.length / 500)) === 0);
+    const data = downsampled.map((val, i) => ({ idx: i, current: val }));
+    return (
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+          <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+          <XAxis dataKey="idx" tick={{ fill: AXIS_COLOR, fontSize: 11 }} />
+          <YAxis tick={{ fill: AXIS_COLOR, fontSize: 11 }} />
+          <Tooltip
+            contentStyle={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+          />
+          <Line
+            type="monotone"
+            dataKey="current"
+            stroke="#f59e0b"
+            strokeWidth={1.5}
+            dot={false}
+            name="Stator Current (A)"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  // Otherwise, plot diagnostic feature series bar chart
+  const featureEntries = Object.entries(features)
+    .filter(([, v]) => typeof v === 'number' && !isNaN(v))
+    .slice(0, 8)
+    .map(([key, val]) => ({
+      name: key.replace(/_/g, ' '),
+      value: +(val as number).toFixed(3),
+    }));
+
+  if (featureEntries.length === 0) {
+    return (
+      <div className="h-48 border border-dashed border-white/10 rounded-lg flex items-center justify-center text-xs text-gray-500">
+        No motor diagnostic series data available.
+      </div>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <BarChart data={featureEntries} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
+        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: AXIS_COLOR, fontSize: 10 }}
+          angle={-25}
+          textAnchor="end"
+          interval={0}
+        />
+        <YAxis tick={{ fill: AXIS_COLOR, fontSize: 11 }} />
+        <Tooltip
+          contentStyle={{ background: '#1e1e2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+        />
+        <Bar dataKey="value" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Metric Value" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+

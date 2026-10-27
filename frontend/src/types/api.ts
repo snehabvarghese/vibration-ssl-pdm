@@ -73,9 +73,6 @@ export interface EmbeddingMapResponse {
   total_points: number;
 }
 
-// --------------------------------------------------------------------------
-// History (client-side, stored in localStorage)
-// --------------------------------------------------------------------------
 export interface HistoryEntry {
   id: string;
   timestamp: string;
@@ -84,8 +81,25 @@ export interface HistoryEntry {
   predicted_class: string;
   confidence: number;
   anomalous: boolean;
-  result: AnalysisResult;
+  modality?: 'vibration' | 'audio' | 'motor' | 'fusion';
+  is_replay?: boolean;
+  result?: AnalysisResult;
+  model_result?: ModelResult;
+  fusion_result?: FusionResult;
 }
+
+export interface SampleRecord {
+  sample_id: string;
+  modality: 'vibration' | 'audio' | 'motor';
+  label?: string | null;
+  description?: string | null;
+  filename?: string | null;
+  file_size_bytes?: number | null;
+  duration_seconds?: number | null;
+  sampling_rate?: number | null;
+  is_replay: boolean;
+}
+
 
 // --------------------------------------------------------------------------
 // Phase 2: Live monitoring types (Contract for Phase 2)
@@ -172,4 +186,82 @@ export interface MotorAnalysisResult {
     sampling_rate?: number;
   };
 }
+
+// --------------------------------------------------------------------------
+// Multimodal Model Adapters, Fusion & Replay Types
+// --------------------------------------------------------------------------
+
+export interface ModelResult {
+  model_name: string;
+  modality: 'vibration' | 'audio' | 'motor';
+  status: 'NORMAL' | 'ANOMALOUS' | 'UNAVAILABLE';
+  anomaly_score: number;
+  threshold: number;
+  score_ratio: number;
+  prediction_label?: string | null;
+  confidence?: number | null;
+  details: Record<string, any>;
+  input_info: Record<string, any>;
+  is_replay: boolean;
+  timestamp: string;
+  error?: string | null;
+}
+
+export interface FusionResult {
+  fused_score: number;
+  fused_status: 'NORMAL' | 'WARNING' | 'ALARM' | 'UNAVAILABLE';
+  method: 'max' | 'weighted' | 'vote';
+  per_model_ratios: Record<string, number>;
+  missing_models: string[];
+  reasons: string[];
+  confidence: number;
+  is_replay: boolean;
+  timestamp: string;
+  details: Record<string, any>;
+}
+
+export interface ReplayMessage {
+  step: number;
+  timestamp: string;
+  scenario_id: string;
+  source: string;
+  is_replay: boolean;
+  models: {
+    vibration?: ModelResult;
+    audio?: ModelResult;
+    motor?: ModelResult;
+    [key: string]: ModelResult | undefined;
+  };
+  fusion: FusionResult;
+}
+
+export interface ScenarioMetadata {
+  id: string;
+  name: string;
+  description: string;
+  total_steps: number;
+  duration_seconds: number;
+  is_replay: boolean;
+}
+
+export interface ModelInfo {
+  model_name: string;
+  modality: string;
+  is_available: boolean;
+  threshold: number;
+  threshold_metric?: string | null;
+  training_dataset?: string | null;
+  checkpoint_path: string;
+  monitor_path?: string | null;
+  machine_type?: string | null;
+  sub_type?: string | null;
+}
+
+export interface FusionRequest {
+  results?: Partial<ModelResult>[];
+  sample_ids?: Record<string, string>;
+  method?: 'max' | 'weighted' | 'vote';
+  config?: Record<string, any>;
+}
+
 
