@@ -4,18 +4,22 @@ Unified prediction and model inspection endpoints for Vibration, Audio, and Moto
 
 from __future__ import annotations
 
+import asyncio
+from dataclasses import asdict
 import io
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 import numpy as np
 import pandas as pd
 import soundfile as sf
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from config import CFG, DATA_RAW_DIR
-from core.models_api import get_registry
+from core.fusion.fusion import FusionConfig, FusionResult, fuse
+from core.models_api import get_registry, ModelResult
 from preprocessing.cwru_manifest import select_records
 from preprocessing.loader import _resample_to, load_signal
 from preprocessing.paderborn_loader import load_paderborn_mat
@@ -30,6 +34,41 @@ MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 # ---------------------------------------------------------------------------
 # Pydantic Schemas
 # ---------------------------------------------------------------------------
+
+class FusionResultResponse(BaseModel):
+    """Schema for multimodal fusion verdict."""
+
+    fused_score: float
+    fused_status: Literal["NORMAL", "WARNING", "ALARM", "UNAVAILABLE"]
+    method: Literal["max", "weighted", "vote"]
+    per_model_ratios: Dict[str, float]
+    missing_models: List[str]
+    reasons: List[str]
+    confidence: float
+    is_replay: bool = False
+    timestamp: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+
+class FusionRequest(BaseModel):
+    """Request schema for /fusion endpoint."""
+
+    results: Optional[List[Dict[str, Any]]] = None
+    sample_ids: Optional[Dict[str, str]] = None
+    method: Literal["max", "weighted", "vote"] = "max"
+    config: Optional[Dict[str, Any]] = None
+
+
+class ScenarioMetadataResponse(BaseModel):
+    """Schema for replay scenario metadata."""
+
+    id: str
+    name: str
+    description: str
+    total_steps: int = 60
+    duration_seconds: int = 60
+    is_replay: bool = True
+
 
 class ModelInfoResponse(BaseModel):
     """Schema for individual model metadata."""
@@ -515,3 +554,172 @@ def predict_sample(modality: str, sample_id: str) -> Dict[str, Any]:
             status_code=400,
             detail=f"Unsupported modality '{modality}'. Supported modalities: vibration, audio, motor",
         )
+
+
+# ---------------------------------------------------------------------------
+# Fusion Endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/fusion/config")
+def get_fusion_config() -> Dict[str, Any]:
+    """Return default fusion configuration and decision boundary parameters."""
+    cfg = FusionConfig()
+    return asdict(cfg)
+
+
+@router.post("/fusion", response_model=FusionResultResponse)
+def run_fusion(req: FusionRequest) -> Dict[str, Any]:
+    """Execute multimodal late fusion over a list of ModelResults or sample IDs."""
+    model_results: List[ModelResult] = []
+
+    # Case 1: Direct list of ModelResult dicts
+    if req.results:
+        for d in req.results:
+            mr = ModelResult(
+                model_name=str(d.get("model_name", "model")),
+                modality=d.get("modality", "vibration"),
+                status=d.get("status", "NORMAL"),
+                anomaly_score=float(d.get("anomaly_score", 0.0)),
+                threshold=float(d.get("threshold", 1.0)),
+                score_ratio=float(d.get("score_ratio", 0.0)),
+                prediction_label=d.get("prediction_label"),
+                confidence=float(d.get("confidence", 0.0)) if d.get("confidence") is not None else None,
+                details=d.get("details", {}),
+                input_info=d.get("input_info", {}),
+                is_replay=bool(d.get("is_replay", False)),
+                timestamp=str(d.get("timestamp", "")),
+                error=d.get("error"),
+            )
+            model_results.append(mr)
+
+    # Case 2: Dictionary of sample IDs per modality
+    elif req.sample_ids:
+        for mod, sid in req.sample_ids.items():
+            res_dict = predict_sample(modality=mod, sample_id=sid)
+            mr = ModelResult(
+                model_name=str(res_dict.get("model_name", f"{mod}_sample")),
+                modality=res_dict.get("modality", mod),  # type: ignore[arg-type]
+                status=res_dict.get("status", "NORMAL"),  # type: ignore[arg-type]
+                anomaly_score=float(res_dict.get("anomaly_score", 0.0)),
+                threshold=float(res_dict.get("threshold", 1.0)),
+                score_ratio=float(res_dict.get("score_ratio", 0.0)),
+                prediction_label=res_dict.get("prediction_label"),
+                confidence=float(res_dict.get("confidence", 0.0)) if res_dict.get("confidence") is not None else None,
+                details=res_dict.get("details", {}),
+                input_info=res_dict.get("input_info", {}),
+                is_replay=bool(res_dict.get("is_replay", True)),
+                timestamp=str(res_dict.get("timestamp", "")),
+                error=res_dict.get("error"),
+            )
+            model_results.append(mr)
+
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing input: please provide either 'results' (list of ModelResult dicts) or 'sample_ids' (mapping of modality -> sample_id).",
+        )
+
+    # Configure fusion parameters
+    cfg = FusionConfig()
+    if req.config:
+        for k, v in req.config.items():
+            if hasattr(cfg, k):
+                setattr(cfg, k, v)
+
+    res = fuse(model_results, method=req.method, config=cfg)
+    return res.to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Replay Streaming Endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/replay/scenarios", response_model=List[ScenarioMetadataResponse])
+def get_replay_scenarios() -> List[Dict[str, Any]]:
+    """List available 60-second replay scenarios for streaming."""
+    from core.replay import list_replay_scenarios
+    return list_replay_scenarios()
+
+
+@router.websocket("/ws/replay/{scenario_id}")
+async def websocket_replay_stream(websocket: WebSocket, scenario_id: str):
+    """Stream 60-second telemetry replay sequence with pause, stop, and speed controls."""
+    await websocket.accept()
+    from core.replay import get_scenario
+
+    try:
+        steps = get_scenario(scenario_id)
+    except KeyError:
+        await websocket.send_json({"error": f"Scenario '{scenario_id}' not found."})
+        await websocket.close(code=1008)
+        return
+
+    # Playback control state
+    state = {
+        "step_index": 0,
+        "is_paused": False,
+        "speed": 1.0,
+        "is_stopped": False,
+    }
+
+    async def listen_commands():
+        try:
+            while not state["is_stopped"]:
+                data = await websocket.receive_text()
+                try:
+                    msg = json.loads(data)
+                    action = msg.get("action", "").lower()
+                    if action == "pause":
+                        state["is_paused"] = True
+                    elif action == "resume":
+                        state["is_paused"] = False
+                    elif action == "stop":
+                        state["is_stopped"] = True
+                        break
+                    elif action == "set_speed":
+                        new_spd = float(msg.get("speed", 1.0))
+                        if new_spd > 0:
+                            state["speed"] = new_spd
+                except Exception:
+                    pass
+        except Exception:
+            state["is_stopped"] = True
+
+    listener_task = asyncio.create_task(listen_commands())
+
+    try:
+        while state["step_index"] < len(steps) and not state["is_stopped"]:
+            if state["is_paused"]:
+                await asyncio.sleep(0.05)
+                continue
+
+            step_data = steps[state["step_index"]]
+            await websocket.send_json(step_data)
+            state["step_index"] += 1
+
+            delay = max(0.005, 1.0 / state["speed"])
+            elapsed = 0.0
+            while elapsed < delay and not state["is_stopped"]:
+                chunk = min(0.05, delay - elapsed)
+                await asyncio.sleep(chunk)
+                elapsed += chunk
+
+        if not state["is_stopped"]:
+            await websocket.send_json({
+                "type": "completed",
+                "scenario_id": scenario_id,
+                "total_steps": len(steps),
+                "is_replay": True,
+            })
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+    finally:
+        state["is_stopped"] = True
+        listener_task.cancel()
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
