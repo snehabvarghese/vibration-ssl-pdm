@@ -1,0 +1,257 @@
+{
+  "disclaimer": "CRITICAL NOTICE: Scenarios are synthetic pairings of held-out test recordings from separate datasets (CWRU, MIMII DG, Paderborn). Numbers demonstrate rule logic and multi-sensor fusion mechanics, NOT real concurrent multi-sensor performance.",
+  "n_samples_per_scenario": 200,
+  "random_seed": 42,
+  "scenarios_evaluated": [
+    "all_normal",
+    "vibration_fault_only",
+    "audio_anomaly_only",
+    "motor_fault_only",
+    "two_faults_vib_audio",
+    "two_faults_vib_motor",
+    "two_faults_audio_motor",
+    "three_faults_all"
+  ],
+  "methods": {
+    "max": {
+      "scenario_metrics": {
+        "all_normal": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 0.9368
+        },
+        "vibration_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 10.7697
+        },
+        "audio_anomaly_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.2242
+        },
+        "motor_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.9998
+        },
+        "two_faults_vib_audio": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 10.9448
+        },
+        "two_faults_vib_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 10.879
+        },
+        "two_faults_audio_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.9998
+        },
+        "three_faults_all": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 11.04
+        }
+      },
+      "overall": {
+        "overall_fault_recall": 1.0,
+        "false_alarm_rate_all_normal": 1.0
+      }
+    },
+    "weighted": {
+      "scenario_metrics": {
+        "all_normal": {
+          "detection_rate": 0.31,
+          "alarm_rate": 0.0,
+          "warning_rate": 0.31,
+          "normal_rate": 0.69,
+          "mean_fused_score": 0.7525
+        },
+        "vibration_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 4.0404
+        },
+        "audio_anomaly_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 0.8599
+        },
+        "motor_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.2641
+        },
+        "two_faults_vib_audio": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 4.2057
+        },
+        "two_faults_vib_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 4.5812
+        },
+        "two_faults_audio_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.3908
+        },
+        "three_faults_all": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 4.7537
+        }
+      },
+      "overall": {
+        "overall_fault_recall": 1.0,
+        "false_alarm_rate_all_normal": 0.31
+      }
+    },
+    "vote": {
+      "scenario_metrics": {
+        "all_normal": {
+          "detection_rate": 0.31,
+          "alarm_rate": 0.0,
+          "warning_rate": 0.31,
+          "normal_rate": 0.69,
+          "mean_fused_score": 0.7525
+        },
+        "vibration_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 0.6758
+        },
+        "audio_anomaly_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 0.6777
+        },
+        "motor_fault_only": {
+          "detection_rate": 1.0,
+          "alarm_rate": 0.0,
+          "warning_rate": 1.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 0.8962
+        },
+        "two_faults_vib_audio": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 10.9448
+        },
+        "two_faults_vib_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 10.879
+        },
+        "two_faults_audio_motor": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 1.9998
+        },
+        "three_faults_all": {
+          "detection_rate": 1.0,
+          "alarm_rate": 1.0,
+          "warning_rate": 0.0,
+          "normal_rate": 0.0,
+          "mean_fused_score": 11.04
+        }
+      },
+      "overall": {
+        "overall_fault_recall": 1.0,
+        "false_alarm_rate_all_normal": 0.31
+      }
+    }
+  },
+  "missing_modality_analysis": {
+    "missing_motor": {
+      "max": {
+        "fault_detection_rate": 1.0,
+        "false_alarm_rate": 1.0
+      },
+      "weighted": {
+        "fault_detection_rate": 1.0,
+        "false_alarm_rate": 1.0
+      },
+      "vote": {
+        "fault_detection_rate": 1.0,
+        "false_alarm_rate": 1.0
+      }
+    },
+    "missing_audio": {
+      "max": {
+        "fault_detection_rate": 1.0,
+        "false_alarm_rate": 1.0
+      },
+      "weighted": {
+        "fault_detection_rate": 0.8893,
+        "false_alarm_rate": 0.29
+      },
+      "vote": {
+        "fault_detection_rate": 0.8893,
+        "false_alarm_rate": 0.29
+      }
+    },
+    "missing_vibration": {
+      "max": {
+        "fault_detection_rate": 0.9614,
+        "false_alarm_rate": 0.7
+      },
+      "weighted": {
+        "fault_detection_rate": 0.8771,
+        "false_alarm_rate": 0.12
+      },
+      "vote": {
+        "fault_detection_rate": 0.8771,
+        "false_alarm_rate": 0.12
+      }
+    }
+  },
+  "default_recommendation": {
+    "recommended_default": "max",
+    "rationale": "Method 'max' guarantees 100% detection of isolated single-sensor anomalies (e.g., electrical current signature defects before vibration or acoustic symptoms appear) while leveraging multi-model agreement for ALARM progression."
+  }
+}
