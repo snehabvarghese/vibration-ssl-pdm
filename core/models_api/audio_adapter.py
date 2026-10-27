@@ -96,7 +96,7 @@ class AudioAdapter(BaseModelAdapter):
 
         # Check availability
         target_ckpt = self.checkpoints_dir / f"{mt}_ae.pt"
-        if not target_ckpt.exists():
+        if not self.is_available() or not target_ckpt.exists():
             return ModelResult(
                 model_name=self.name,
                 modality=self.modality,

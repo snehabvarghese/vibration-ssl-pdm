@@ -52,6 +52,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include unified prediction and model inspection endpoints
+from api.routes_predict import router as predict_router
+app.include_router(predict_router)
+
+
 
 def _to_serializable(obj: Any) -> Any:
     """Recursively convert numpy arrays and scalars to native Python types.
