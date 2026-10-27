@@ -95,13 +95,31 @@ def analyse_motor_signal(
 
     p2 = np.asarray(current_phase2, dtype=np.float64).ravel() if current_phase2 is not None else None
 
-    # Extract features
-    vec, feature_names, feat_dict = extract_multimodal_features(
-        current_phase1=p1,
-        current_phase2=p2,
-        temperature=temperature,
-        sampling_rate=sampling_rate,
-    )
+    # Extract features matching the 0.5s training window length
+    win_len = int(round(0.5 * sampling_rate))
+    if len(p1) > win_len:
+        step = max(1, win_len // 2)
+        all_vecs = []
+        last_dict = {}
+        for start in range(0, len(p1) - win_len + 1, step):
+            w1 = p1[start : start + win_len]
+            w2 = p2[start : start + win_len] if p2 is not None else None
+            v, feature_names, last_dict = extract_multimodal_features(
+                current_phase1=w1,
+                current_phase2=w2,
+                temperature=temperature,
+                sampling_rate=sampling_rate,
+            )
+            all_vecs.append(v)
+        vec = np.mean(all_vecs, axis=0)
+        feat_dict = {name: float(vec[i]) for i, name in enumerate(feature_names)}
+    else:
+        vec, feature_names, feat_dict = extract_multimodal_features(
+            current_phase1=p1,
+            current_phase2=p2,
+            temperature=temperature,
+            sampling_rate=sampling_rate,
+        )
     X = vec.reshape(1, -1)
 
     model = get_motor_model(model_mode=model_mode)

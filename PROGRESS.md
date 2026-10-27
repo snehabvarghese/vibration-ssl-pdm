@@ -147,7 +147,17 @@ Status of the independent motor-current and temperature subsystem developed for 
   * Updated `frontend/src/components/Sidebar.tsx` with `⚡ Motor & Temp` navigation link.
   * Updated `frontend/src/App.tsx` with `/motor` route.
   * Updated `frontend/src/api/client.ts` and `frontend/src/types/api.ts` with fully typed motor PdM contracts.
-  * Validated with zero TypeScript / oxlint warnings (`npm run build` passes in 159ms).
+  * Validated with zero TypeScript / oxlint warnings (`npm run build` passes in 201ms).
+
+### STEP M8 — Calibration Fix, FFT Window Alignment & Retraining
+* **Calibrated Anomaly Variance Preservation**: Fixed single-sample standard deviation collapse in `models/motor_temperature_model.py` by computing and preserving `self.anomaly_scale_ = max(0.02, float(np.std(raw_scores)))` on the healthy training set. Prevents $N=1$ predictions from collapsing to $\text{scale}=0.01$ and triggering false anomaly flags.
+* **0.5s Signal Windowing Alignment**: In `core/motor_temperature.py`, updated `analyse_motor_signal` to window signals longer than $0.5\text{ s}$ into consecutive $0.5\text{ s}$ windows ($32{,}000$ samples) and average the feature vectors, ensuring FFT spectral resolution matches the training distribution.
+* **Full 240-File Benchmark Retraining**: Retrained all 3 motor checkpoints (`current_only`, `temperature_only`, `combined`) across all 240 real Paderborn `.mat` files across all 4 operating conditions (900 & 1500 RPM, varying torque and radial force). Achieved **98.97% accuracy** on Combined and **98.80% accuracy** on Current-Only.
+* **Verified Predictions**:
+  * Normal (`paderborn_demo_normal` / K001): Status `NORMAL`, Score Ratio `0.2664x` ($< 1.0$), Confidence `83.3%`.
+  * Outer Race (`paderborn_demo_outer_race` / KA01): Status `ANOMALOUS`, Label `Outer_Race`, Score Ratio `1.000x`, Confidence `100.0%`.
+  * Inner Race (`paderborn_demo_inner_race` / KI01): Status `ANOMALOUS`, Label `Inner_Race`, Score Ratio `1.2006x`, Confidence `94.0%`.
+* **Documentation**: Created [`DASHBOARD_AND_PAGES_GUIDE.md`](file:///Users/snehabvarghese/vibration-ssl-pdm/DASHBOARD_AND_PAGES_GUIDE.md) providing an exhaustive reference to every page, graph, metric, and faculty presentation walkthrough.
 
 ## Honest caveats
 

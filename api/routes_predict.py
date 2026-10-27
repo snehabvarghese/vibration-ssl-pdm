@@ -519,14 +519,31 @@ def predict_sample(modality: str, sample_id: str) -> Dict[str, Any]:
         return res.to_dict()
 
     elif mod == "motor":
+        paderborn_dir = Path(__file__).resolve().parent.parent / "data" / "paderborn"
         if sid in ("paderborn_demo_normal", "demo_normal", "normal"):
-            p1, p2, temp = generate_synthetic_motor_current(condition="Normal", seed=42)
+            real_normal = paderborn_dir / "K001" / "N15_M07_F10_K001_1.mat"
+            if real_normal.exists():
+                rec = load_paderborn_mat(real_normal)
+                p1, p2, temp = rec.phase_current_1, rec.phase_current_2, rec.temperature_celsius
+            else:
+                p1, p2, temp = generate_synthetic_motor_current(condition="Normal", seed=42)
         elif sid in ("paderborn_demo_outer_race", "demo_outer_race", "outer_race"):
-            p1, p2, temp = generate_synthetic_motor_current(condition="Outer_Race", seed=42)
+            real_or = paderborn_dir / "KA01" / "N15_M07_F10_KA01_1.mat"
+            if real_or.exists():
+                rec = load_paderborn_mat(real_or)
+                p1, p2, temp = rec.phase_current_1, rec.phase_current_2, rec.temperature_celsius
+            else:
+                p1, p2, temp = generate_synthetic_motor_current(condition="Outer_Race", seed=42)
         elif sid in ("paderborn_demo_inner_race", "demo_inner_race", "inner_race"):
-            p1, p2, temp = generate_synthetic_motor_current(condition="Inner_Race", seed=42)
+            real_ir = paderborn_dir / "KI01" / "N09_M07_F10_KI01_1.mat"
+            if not real_ir.exists():
+                real_ir = paderborn_dir / "KI01" / "N15_M07_F10_KI01_2.mat"
+            if real_ir.exists():
+                rec = load_paderborn_mat(real_ir)
+                p1, p2, temp = rec.phase_current_1, rec.phase_current_2, rec.temperature_celsius
+            else:
+                p1, p2, temp = generate_synthetic_motor_current(condition="Inner_Race", seed=42)
         else:
-            paderborn_dir = Path(__file__).resolve().parent.parent / "data" / "paderborn"
             matches = list(paderborn_dir.rglob(sid if sid.endswith(".mat") else f"{sid}.mat"))
             if not matches:
                 raise HTTPException(status_code=404, detail=f"Motor sample '{sid}' not found.")

@@ -192,6 +192,17 @@ Evaluated under additive white Gaussian noise ($\sigma \in [0.01, 0.20]$):
 * Noise $\sigma = 0.10$: Accuracy = **97.69%**
 * Noise $\sigma = 0.20$ (high industrial electromagnetic interference): Accuracy = **95.12%**
 
+### 6.3 Calibrated Anomaly Detection Scale Preservation
+During single-recording inference ($N=1$), computing sample variance dynamically on the test array collapses $\sigma(\text{raw}) = 0$, which previously defaulted the sigmoid denominator to $\text{scale} = 0.01$. This created an artificial step function where even trivial variance above threshold was amplified to $0.9999$ ($99.99\%$).
+To resolve this:
+* `self.anomaly_scale_ = max(0.02, float(np.std(raw_scores)))` is calibrated during `fit()` on the physical healthy baseline set.
+* At runtime, `score_anomaly()` uses this preserved calibration scale, providing a smooth probabilistic curve centered at threshold ($\tau = 0.50$).
+
+### 6.4 Signal Windowing Alignment ($0.5\text{ s}$ Standardization)
+Because FFT spectral features (spectral centroid, sideband energy ratio, spectral entropy) depend on frequency bin resolution ($\Delta f = f_s / N$), passing an unwindowed $4.0\text{ s}$ recording ($256{,}000$ samples) into feature extraction produces an $8\times$ bin resolution mismatch against models trained on $0.5\text{ s}$ segments ($32{,}000$ samples).
+* `analyse_motor_signal()` automatically segments incoming signals longer than $0.5\text{ s}$ into consecutive $0.5\text{ s}$ windows with 50% overlap.
+* Features are extracted per window and averaged, ensuring 100% mathematical consistency with training distributions regardless of input recording duration.
+
 ---
 
 ## 7. Software Architecture & File Layout

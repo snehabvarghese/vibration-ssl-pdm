@@ -137,6 +137,7 @@ class MotorPdMModel:
         # score_samples returns opposite of anomaly score (higher = normal, lower = abnormal)
         raw_scores = -self.anomaly_detector.score_samples(X_healthy)
         self.anomaly_threshold_ = float(np.percentile(raw_scores, 95))
+        self.anomaly_scale_ = max(0.02, float(np.std(raw_scores)))
 
         self.is_fitted = True
         return self
@@ -170,7 +171,9 @@ class MotorPdMModel:
         # Raw score: higher means more anomalous
         raw = -self.anomaly_detector.score_samples(X_scaled)
         # Calibrate using sigmoid centered at threshold
-        scale = max(0.01, float(np.std(raw)))
+        scale = getattr(self, "anomaly_scale_", None)
+        if scale is None or scale <= 0:
+            scale = max(0.02, float(np.std(raw)) if len(raw) > 1 else 0.05)
         calibrated = 1.0 / (1.0 + np.exp(-(raw - self.anomaly_threshold_) / scale))
         return np.clip(calibrated, 0.0, 1.0)
 
